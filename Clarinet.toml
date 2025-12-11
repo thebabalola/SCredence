@@ -6,10 +6,10 @@ telemetry = true
 cache_dir = './.cache'
 requirements = []
 
-[contracts.lending-pool]
-path = 'contracts/lending-pool.clar'
-clarity_version = 4
-epoch = 'latest'
+# [contracts.lending-pool]
+# path = 'contracts/lending-pool.clar'
+# clarity_version = 4
+# epoch = 'latest'
 
 [contracts.mock-oracle]
 path = 'contracts/mock-oracle.clar'
