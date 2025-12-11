@@ -74,3 +74,10 @@
   )
 )
 
+;; ============================================
+;; Read-Only Functions
+;; ============================================
+(define-read-only (get-price)
+  (ok (var-get btc-stx-price))
+)
+
