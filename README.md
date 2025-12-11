@@ -11,10 +11,42 @@ This lending protocol allows users to:
 
 ## Technology Stack
 
-- **Clarity**: Smart contract language for Stacks
+- **Clarity 4**: Smart contract language for Stacks (latest version)
 - **Clarinet**: Development and testing framework
 - **Vitest**: Testing framework for contract tests
 - **TypeScript**: For writing test files
+
+## Clarity 4 Features
+
+This project uses **Clarity 4**, which was activated at Bitcoin block 923222 (November 2025). We leverage the following Clarity 4 features:
+
+### 1. `stacks-block-time` - Direct Block Timestamp Access
+- **Used in**: Time-based interest calculations, loan expiration logic
+- **Benefit**: Simplifies code by replacing helper functions with direct timestamp access
+- **Location**: `lending-pool.clar` - Interest accrual and debt calculations
+
+### 2. `contract-hash?` - On-Chain Contract Verification
+- **Used in**: Verifying oracle, sBTC token, and Bitflow DEX contracts before interactions
+- **Benefit**: Ensures we're interacting with the correct contract implementations
+- **Location**: 
+  - Oracle verification in `get-sbtc-stx-price`
+  - sBTC verification in `borrow-stx` and `repay`
+  - Bitflow verification in `liquidate`
+
+### 3. `restrict-assets?` - Post-Condition Asset Protection
+- **Used in**: All external contract calls to prevent unexpected asset movements
+- **Benefit**: Automatic rollback if external contracts move assets beyond allowed limits
+- **Location**: Wrapped around all `contract-call?` invocations
+
+### 4. `to-ascii?` - Value to String Conversion (Future)
+- **Planned for**: Enhanced error messages and debugging
+- **Status**: Optional enhancement for better UX
+
+### 5. `secp256r1-verify` - Passkey Integration (Future)
+- **Planned for**: Hardware wallet and biometric authentication
+- **Status**: Future enhancement for admin functions
+
+For detailed implementation information, see [CLARITY4-IMPLEMENTATION-PLAN.md](./CLARITY4-IMPLEMENTATION-PLAN.md).
 
 ## Project Structure
 
