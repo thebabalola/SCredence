@@ -89,3 +89,9 @@
   (var-get initialized)
 )
 
+;; Clarity 4: Self-verification using contract-hash?
+;; Returns the contract's own hash for verification purposes
+(define-read-only (get-contract-hash)
+  (contract-hash? .mock-oracle)
+)
+
