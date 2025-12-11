@@ -75,17 +75,17 @@ This document outlines all the issues/tasks required to build the complete dual-
 
 #### Issue #2.5: Add Contract Requirements
 **Priority:** High  
-**Status:** Pending  
+**Status:** Completed  
 **Description:** Add required contract dependencies for sBTC and Bitflow DEX integration.
 
 **Tasks:**
-- [ ] Add sBTC token contract requirement:
+- [x] Add sBTC token contract requirement:
   - `SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token`
-- [ ] Add STX token wrapper contract requirement:
+- [x] Add STX token wrapper contract requirement:
   - `SM1793C4R5PZ4NS4VQ4WMP7SKKYVH8JZEWSZ9HCCR.token-stx-v-1-2`
-- [ ] Add Bitflow swap helper contract requirement:
+- [x] Add Bitflow swap helper contract requirement:
   - `SM1793C4R5PZ4NS4VQ4WMP7SKKYVH8JZEWSZ9HCCR.xyk-swap-helper-v-1-3`
-- [ ] Add Bitflow sBTC-STX pool contract requirement:
+- [x] Add Bitflow sBTC-STX pool contract requirement:
   - `SM1793C4R5PZ4NS4VQ4WMP7SKKYVH8JZEWSZ9HCCR.xyk-pool-sbtc-stx-v-1-1`
 
 **Acceptance Criteria:**
