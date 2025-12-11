@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { AppConfig, UserSession } from "@stacks/auth";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 export type WalletStatus =
   | "idle"
@@ -50,9 +51,24 @@ const initialState: WalletState = {
 export function useStacks(): UseStacksResult {
   const [state, setState] = useState<WalletState>(initialState);
   const hasHydrated = useRef(false);
+  const userSessionRef = useRef<UserSession | null>(null);
+
+  const isBrowser = typeof window !== "undefined";
+
+  const getUserSession = useCallback(() => {
+    if (!isBrowser) return null;
+    if (userSessionRef.current) return userSessionRef.current;
+
+    const appConfig = new AppConfig(["store_write"]);
+    userSessionRef.current = new UserSession({ appConfig });
+    return userSessionRef.current;
+  }, [isBrowser]);
 
   useEffect(() => {
     hasHydrated.current = true;
+    if (!isBrowser) {
+      setState((prev) => ({ ...prev, isLoading: false }));
+    }
   }, []);
 
   const connect = useMemo<ConnectWallet>(
