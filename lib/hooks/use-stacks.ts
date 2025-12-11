@@ -51,6 +51,11 @@ export type UseStacksResult = WalletState & {
   connect: ConnectWallet;
   disconnect: DisconnectWallet;
   refresh: RefreshWallet;
+  isConnected: boolean;
+  isPending: boolean;
+  isReady: boolean;
+  stxAddress?: string;
+  btcAddress?: string;
 };
 
 const initialState: WalletState = {
@@ -254,5 +259,10 @@ export function useStacks(): UseStacksResult {
     connect,
     disconnect,
     refresh,
+    isConnected: state.status === "connected",
+    isPending: state.status === "pending",
+    isReady: isBrowser && hasHydrated.current,
+    stxAddress: state.addresses.testnet ?? state.addresses.mainnet,
+    btcAddress: state.addresses.btc,
   };
 }
