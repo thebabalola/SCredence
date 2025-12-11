@@ -118,6 +118,26 @@ The frontend uses **@stacks/connect** to:
 - Sign transactions
 - Manage user sessions
 
+#### useStacks hook
+
+The custom `useStacks` hook centralizes wallet connection, session persistence, and pending sign-in handling:
+
+```tsx
+import { useStacks } from "@/lib/hooks/use-stacks";
+
+export function ConnectButton() {
+  const { connect, disconnect, stxAddress, status, isConnected } = useStacks();
+
+  return (
+    <button onClick={isConnected ? disconnect : connect}>
+      {isConnected ? `Disconnect ${stxAddress}` : "Connect wallet"}
+    </button>
+  );
+}
+```
+
+It supports Leather and Xverse providers via the default Stacks Connect modal and restores the session on reload.
+
 ### Contract Interactions
 
 The frontend uses **@stacks/transactions** to:
