@@ -70,5 +70,38 @@ describe("Mock Oracle Contract Tests", () => {
       expect(init2.result).toBeErr(Cl.uint(101)); // ERR_ALREADY_INITIALIZED
     });
   });
+
+  describe("Price Updates", () => {
+    it("should allow updater to update price", () => {
+      // Initialize first
+      const init = simnet.callPublicFn(
+        contractName,
+        "initialize",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+      expect(init.result).toBeOk(Cl.bool(true));
+
+      // Update price as updater
+      const newPrice = Cl.uint(50000);
+      const result = simnet.callPublicFn(
+        contractName,
+        "update-price",
+        [newPrice],
+        wallet1
+      );
+
+      expect(result.result).toBeOk(Cl.bool(true));
+
+      // Verify price was updated
+      const price = simnet.callReadOnlyFn(
+        contractName,
+        "get-price",
+        [],
+        deployer
+      );
+      expect(price.result).toBeOk(newPrice);
+    });
+  });
 });
 
