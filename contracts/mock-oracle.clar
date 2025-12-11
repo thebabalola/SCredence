@@ -19,3 +19,37 @@
 (define-data-var initialized bool false)
 (define-data-var btc-stx-price uint u0)
 
+;; ============================================
+;; Public Functions
+;; ============================================
+(define-public (initialize (new-updater principal))
+  (let (
+    (current-owner (var-get owner))
+    (is-initialized (var-get initialized))
+  )
+    ;; Set owner to tx-sender on first call if not set, then verify and initialize
+    (let ((owner-principal (unwrap! 
+      (if (is-none current-owner)
+        (var-set owner (some tx-sender))
+        current-owner
+      )
+      ERR_NOT_OWNER
+    )))
+      ;; Verify tx-sender equals owner
+      (asserts! (is-eq tx-sender owner-principal) ERR_NOT_OWNER)
+      
+      ;; Check initialized is false
+      (asserts! (not is-initialized) ERR_ALREADY_INITIALIZED)
+      
+      ;; Set updater to new-updater
+      (var-set updater (some new-updater))
+      
+      ;; Set initialized to true
+      (var-set initialized true)
+      
+      ;; Return success
+      (ok true)
+    )
+  )
+)
+
