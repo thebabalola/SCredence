@@ -124,6 +124,19 @@ describe("Mock Oracle Contract Tests", () => {
 
       expect(result.result).toBeErr(Cl.uint(102)); // ERR_NOT_UPDATER
     });
+
+    it("should not allow price update if contract is not initialized", () => {
+      // Attempt to update price without initializing
+      const newPrice = Cl.uint(50000);
+      const result = simnet.callPublicFn(
+        contractName,
+        "update-price",
+        [newPrice],
+        wallet1
+      );
+
+      expect(result.result).toBeErr(Cl.uint(103)); // ERR_NOT_INITIALIZED
+    });
   });
 });
 
