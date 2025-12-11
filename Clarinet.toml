@@ -8,12 +8,12 @@ requirements = []
 
 [contracts.lending-pool]
 path = 'contracts/lending-pool.clar'
-clarity_version = 3
+clarity_version = 4
 epoch = 'latest'
 
 [contracts.mock-oracle]
 path = 'contracts/mock-oracle.clar'
-clarity_version = 3
+clarity_version = 4
 epoch = 'latest'
 
 [repl.analysis]
