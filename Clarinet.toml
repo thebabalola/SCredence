@@ -6,19 +6,15 @@ telemetry = true
 cache_dir = './.cache'
 requirements = []
 
-# [contracts.lending-pool]
-# path = 'contracts/lending-pool.clar'
-# clarity_version = 3  # For local testing
-# clarity_version = 4  # Use for mainnet deployment
-# epoch = '2.4'  # For Clarity 3
-# epoch = '3.0'  # Use with Clarity 4 for mainnet deployment
+[contracts.lending-pool]
+path = 'contracts/lending-pool.clar'
+clarity_version = 4
+epoch = 'latest'
 
 [contracts.mock-oracle]
 path = 'contracts/mock-oracle.clar'
-# clarity_version = 3  # For local testing
-# clarity_version = 4  # Use for mainnet deployment
-# epoch = '2.4'  # For Clarity 3
-# epoch = '3.0'  # Use with Clarity 4 for mainnet deployment
+clarity_version = 4
+epoch = 'latest'
 
 [repl.analysis]
 passes = ['check_checker']
