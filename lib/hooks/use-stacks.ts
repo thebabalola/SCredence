@@ -1,3 +1,5 @@
+"use client";
+
 import type { UserData } from "@stacks/auth";
 import { AppConfig, UserSession } from "@stacks/auth";
 import {
