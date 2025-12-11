@@ -30,16 +30,16 @@ This document outlines all the issues/tasks required to build the complete dual-
 
 #### Issue #17: Implement Wallet Connection Hook
 **Priority:** High  
-**Status:** Pending  
+**Status:** Completed  
 **Dependencies:** Issue #16
 
 **Tasks:**
-- [ ] Create `use-stacks.ts` hook
-- [ ] Implement wallet connection function
-- [ ] Implement wallet disconnection function
-- [ ] Handle user session state
-- [ ] Handle pending sign-in flow
-- [ ] Store user data in state
+- [x] Create `use-stacks.ts` hook
+- [x] Implement wallet connection function
+- [x] Implement wallet disconnection function
+- [x] Handle user session state
+- [x] Handle pending sign-in flow
+- [x] Store user data in state
 
 **Acceptance Criteria:**
 - Users can connect/disconnect wallets
