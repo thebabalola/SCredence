@@ -98,7 +98,8 @@ This document outlines all the issues/tasks required to build the complete dual-
 
 #### Issue #3: Set Up Lending Pool Contract Structure
 **Priority:** High  
-**Status:** Pending
+**Status:** Pending  
+**Note:** This contract uses Clarity 4 features (stacks-block-time, contract-hash?, restrict-assets?)
 
 **Tasks:**
 - [ ] Define error constants with specific error codes:
@@ -106,6 +107,9 @@ This document outlines all the issues/tasks required to build the complete dual-
   - ERR_EXCEEDED_MAX_BORROW (err u101)
   - ERR_CANNOT_BE_LIQUIDATED (err u102)
   - ERR_MUST_WITHDRAW_BEFORE_NEW_DEPOSIT (err u103)
+  - ERR_INVALID_ORACLE (err u104) - Clarity 4: contract-hash? verification failed
+  - ERR_INVALID_SBTC_CONTRACT (err u105) - Clarity 4: contract-hash? verification failed
+  - ERR_INVALID_DEX_CONTRACT (err u106) - Clarity 4: contract-hash? verification failed
 - [ ] Define protocol constants with specific values:
   - LTV_PERCENTAGE = u70 (70% loan-to-value ratio)
   - INTEREST_RATE_PERCENTAGE = u10 (10% annual interest rate)
@@ -115,7 +119,7 @@ This document outlines all the issues/tasks required to build the complete dual-
   - `total-sbtc-collateral` (uint) - initialized to u0
   - `total-stx-deposits` (uint) - initialized to u1 (to avoid division by zero)
   - `total-stx-borrows` (uint) - initialized to u0
-  - `last-interest-accrual` (uint) - initialized to `(get-latest-timestamp)`
+  - `last-interest-accrual` (uint) - initialized to `stacks-block-time` (Clarity 4 feature)
   - `cumulative-yield-bips` (uint) - initialized to u0 (yield in basis points)
 - [ ] Define maps with proper structure:
   - `collateral` map: key `{ user: principal }`, value `{ amount: uint }`
@@ -136,19 +140,18 @@ This document outlines all the issues/tasks required to build the complete dual-
 **Dependencies:** Issue #3
 
 **Tasks:**
-- [ ] Implement `get-latest-timestamp` private function:
-  - Use `get-stacks-block-info?` with `time` and `(- stacks-block-height u1)`
-  - Return the timestamp as uint
 - [ ] Implement `get-sbtc-stx-price` public function:
+  - Verify oracle contract using `contract-hash?` (Clarity 4 security feature)
+  - Wrap oracle call with `restrict-assets?` to protect contract assets (Clarity 4)
   - Call `contract-call?` on `.mock-oracle` contract's `get-price` function
   - Return the price response
 - [ ] Implement `accrue-interest` private function:
-  - Calculate time delta: `dt = (get-latest-timestamp) - (var-get last-interest-accrual)`
+  - Calculate time delta: `dt = stacks-block-time - (var-get last-interest-accrual)` (Clarity 4: direct timestamp access)
   - Calculate interest numerator: `(* u10000 (* (* (var-get total-stx-borrows) INTEREST_RATE_PERCENTAGE) dt))`
   - Calculate interest denominator: `(* ONE_YEAR_IN_SECS u100)`
   - Calculate interest: `(/ interest-numerator interest-denominator)`
   - Calculate new yield in bips: `(/ interest (var-get total-stx-deposits))`
-  - Update `last-interest-accrual` to current timestamp
+  - Update `last-interest-accrual` to `stacks-block-time` (Clarity 4: direct timestamp access)
   - Update `cumulative-yield-bips`: `(+ (var-get cumulative-yield-bips) new-yield)`
   - Return `(ok true)`
 
@@ -263,11 +266,13 @@ This document outlines all the issues/tasks required to build the complete dual-
 - [ ] Accrue interest using `unwrap-panic (accrue-interest)`
 - [ ] Update borrows map:
   - Set amount to `new-debt`
-  - Set last-accrued to `(get-latest-timestamp)`
+  - Set last-accrued to `stacks-block-time` (Clarity 4: direct timestamp access)
 - [ ] Update total-stx-borrows variable: `(+ (var-get total-stx-borrows) amount-stx)`
 - [ ] Update collateral map: set amount to `new-collateral`
 - [ ] Update total-sbtc-collateral variable: `(+ (var-get total-sbtc-collateral) collateral-amount)`
 - [ ] Transfer sBTC from user to contract:
+  - Verify sBTC contract using `contract-hash?` (Clarity 4 security)
+  - Use `restrict-assets?` wrapper around `contract-call?` to protect assets (Clarity 4)
   - Use `contract-call?` on sBTC token contract's `transfer` function
   - Transfer `collateral-amount` from `tx-sender` to `(as-contract tx-sender)`
 - [ ] Transfer STX from contract to user:
@@ -322,8 +327,8 @@ This document outlines all the issues/tasks required to build the complete dual-
 - [ ] Load user's borrow information from `borrows` map:
   - Get `borrowed-stx` (amount) using `default-to u0`
   - Get `last-accrued` (timestamp) using `default-to u0`
-- [ ] Get current timestamp using `get-latest-timestamp`
-- [ ] Calculate time delta since last accrual: `dt = (- latest-timestamp last-accrued)`
+- [ ] Get current timestamp using `stacks-block-time` (Clarity 4: direct timestamp access)
+- [ ] Calculate time delta since last accrual: `dt = (- stacks-block-time last-accrued)`
 - [ ] Calculate interest:
   - `interest-numerator = (* borrowed-stx INTEREST_RATE_PERCENTAGE dt)`
   - `interest-denominator = (* ONE_YEAR_IN_SECS u100)`
@@ -355,11 +360,12 @@ This document outlines all the issues/tasks required to build the complete dual-
 - [ ] Calculate collateral value in STX: `collateral-value-in-stx = (* deposited-sbtc price)`
 - [ ] Calculate liquidator bounty (10% of collateral): `liquidator-bounty = (/ (* deposited-sbtc u10) u100)`
 - [ ] Calculate pool reward (90% of collateral): `pool-reward = (- deposited-sbtc liquidator-bounty)`
-- [ ] Get contract's sBTC balance using `contract-call?` on sBTC token's `get-balance`
+- [ ] Verify sBTC and Bitflow DEX contracts using `contract-hash?` (Clarity 4 security)
+- [ ] Get contract's sBTC balance using `contract-call?` on sBTC token's `get-balance` (wrapped with `restrict-assets?`)
 - [ ] Set up Bitflow DEX parameters:
   - `xyk-tokens` tuple: `{ a: sbtc-token-contract, b: token-stx-contract }`
   - `xyk-pools` tuple: `{ a: xyk-pool-sbtc-stx-contract }`
-- [ ] Get quote for sBTC to STX swap using `contract-call?` on `xyk-swap-helper`'s `get-quote-a`
+- [ ] Get quote for sBTC to STX swap using `contract-call?` on `xyk-swap-helper`'s `get-quote-a` (wrapped with `restrict-assets?`)
 - [ ] Accrue interest using `unwrap-panic (accrue-interest)`
 - [ ] Validate user has debt: assert `(> user-debt u0)`, otherwise return ERR_CANNOT_BE_LIQUIDATED
 - [ ] Validate liquidation threshold is met:
@@ -369,9 +375,11 @@ This document outlines all the issues/tasks required to build the complete dual-
 - [ ] Update total-stx-borrows: `(- (var-get total-stx-borrows) forfeited-borrows)`
 - [ ] Delete user's entries from `borrows` and `collateral` maps using `map-delete`
 - [ ] Transfer liquidator bounty (sBTC) to liquidator:
+  - Use `restrict-assets?` wrapper to protect contract assets (Clarity 4)
   - Use `contract-call?` on sBTC token's `transfer`
   - Transfer `(+ pool-reward liquidator-bounty)` to `tx-sender` (liquidator)
 - [ ] Execute swap on Bitflow DEX (sBTC to STX):
+  - Use `restrict-assets?` wrapper to protect contract assets (Clarity 4)
   - Use `contract-call?` on `xyk-swap-helper`'s `swap-helper-a`
   - Swap `pool-reward` amount of sBTC for STX
   - Note: Bitflow sends STX to `tx-sender` (liquidator), so we need to transfer it back
