@@ -25,7 +25,7 @@
 (define-public (initialize (new-updater principal))
   (let (
     (current-owner (var-get owner))
-    (is-initialized (var-get initialized))
+    (initialized-status (var-get initialized))
   )
     ;; Set owner to tx-sender on first call if not set
     (if (is-none current-owner)
@@ -39,7 +39,7 @@
       (asserts! (is-eq tx-sender owner-principal) ERR_NOT_OWNER)
       
       ;; Check initialized is false
-      (asserts! (not is-initialized) ERR_ALREADY_INITIALIZED)
+      (asserts! (not initialized-status) ERR_ALREADY_INITIALIZED)
       
       ;; Set updater to new-updater
       (var-set updater (some new-updater))
