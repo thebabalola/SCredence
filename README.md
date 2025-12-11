@@ -15,6 +15,8 @@ This lending protocol allows users to:
 - **Clarinet**: Development and testing framework
 - **Vitest**: Testing framework for contract tests
 - **TypeScript**: For writing test files
+- **@stacks/clarinet-sdk**: SDK for interacting with Clarinet simnet
+- **@stacks/transactions**: For building Clarity values in tests (Cl.bool, Cl.uint, etc.)
 
 ## Clarity 4 Features
 
@@ -112,8 +114,14 @@ Install Node.js dependencies for testing:
 
 ```bash
 npm install
-npm install --save-dev @hirosystems/clarinet-sdk-wasm vite
 ```
+
+This installs:
+- **@stacks/clarinet-sdk**: SDK for Clarinet simnet interactions
+- **@stacks/clarinet-sdk-wasm**: WASM bindings for Clarinet
+- **@stacks/transactions**: For building Clarity values in tests (Cl.bool, Cl.uint, Cl.principal, etc.)
+- **vitest**: Testing framework
+- **vitest-environment-clarinet**: Vitest environment for Clarinet tests
 
 ### 5. Configure Mainnet Execution Simulation (MXS)
 
