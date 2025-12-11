@@ -261,8 +261,27 @@ describe("Mock Oracle Contract Tests", () => {
         deployer
       );
       
-      // Contract hash should be a some value (optional buff 32)
-      expect(contractHash.result).toBeSome();
+      // contract-hash? returns an optional (some buff 32 or none)
+      // The SDK wraps read-only function results in ok and unwraps the optional
+      // In simnet, it should return some value for the deployed contract
+      expect(contractHash.result.type).toBe("ok");
+      
+      // The SDK unwraps the optional, so if contract-hash? returns (some buff),
+      // the value inside ok will be the buff directly
+      // Access value property with type assertion since we've verified it's ok
+      const result = contractHash.result as { type: "ok"; value: any };
+      const hashValue = result.value;
+      
+      // Verify it's a buffer (32 bytes)
+      expect(hashValue.type).toBe("buffer");
+      // Verify the buffer is 32 bytes (contract hash is always 32 bytes)
+      // BufferCV has a value property that contains the hex string
+      if (hashValue.type === "buffer") {
+        const bufferValue = (hashValue as any).value as string;
+        expect(bufferValue).toBeDefined();
+        // Hex string: 0x prefix + 64 hex chars = 32 bytes
+        expect(bufferValue.length).toBe(66); // 0x + 64 hex characters
+      }
     });
   });
 });
