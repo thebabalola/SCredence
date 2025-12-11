@@ -50,24 +50,24 @@ This document outlines all the issues/tasks required to build the complete dual-
 
 #### Issue #2: Write Mock Oracle Tests
 **Priority:** High  
-**Status:** Pending  
+**Status:** Completed  
 **Dependencies:** Issue #1
 
 **Tasks:**
-- [ ] Test initialization with correct owner and updater
-- [ ] Test that non-owner cannot initialize
-- [ ] Test that re-initialization is prevented
-- [ ] Test that updater can update price
-- [ ] Test that non-updater cannot update price
-- [ ] Test that price cannot be updated if not initialized
-- [ ] Test `get-price` returns correct value
-- [ ] Test `get-updater` returns correct address
-- [ ] Test `is-initialized` status changes correctly
+- [x] Test initialization with correct owner and updater
+- [x] Test that non-owner cannot initialize
+- [x] Test that re-initialization is prevented
+- [x] Test that updater can update price
+- [x] Test that non-updater cannot update price
+- [x] Test that price cannot be updated if not initialized
+- [x] Test `get-price` returns correct value
+- [x] Test `get-updater` returns correct address
+- [x] Test `is-initialized` status changes correctly
 
 **Acceptance Criteria:**
-- All tests pass
-- Edge cases are covered
-- Error conditions are tested
+- All tests pass ✅
+- Edge cases are covered ✅
+- Error conditions are tested ✅
 
 ---
 
