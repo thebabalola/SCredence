@@ -200,33 +200,46 @@ export function useStacks(): UseStacksResult {
 
       setState((prev) => ({ ...prev, status: "pending", isLoading: true }));
 
-      await new Promise<void>((resolve, reject) => {
-        showConnect(
-          {
-            appDetails: STACKS_APP_DETAILS,
-            redirectTo: STACKS_REDIRECT_PATH,
-            manifestPath: STACKS_MANIFEST_PATH,
-            sendToSignIn: true,
-            userSession: session,
-            defaultProviders: DEFAULT_PROVIDERS,
-            onFinish: async () => {
-              const userData = await session.loadUserData();
-              const providerName = resolveProviderName();
-              setConnectedState(userData, providerName);
-              resolve();
+      try {
+        await new Promise<void>((resolve, reject) => {
+          showConnect(
+            {
+              appDetails: STACKS_APP_DETAILS,
+              redirectTo: STACKS_REDIRECT_PATH,
+              manifestPath: STACKS_MANIFEST_PATH,
+              sendToSignIn: true,
+              userSession: session,
+              defaultProviders: DEFAULT_PROVIDERS,
+              onFinish: async () => {
+                const userData = await session.loadUserData();
+                const providerName = resolveProviderName();
+                setConnectedState(userData, providerName);
+                resolve();
+              },
+              onCancel: () => {
+                setState((prev) => ({
+                  ...prev,
+                  status: "disconnected",
+                  isLoading: false,
+                  error: "Wallet connection was cancelled",
+                }));
+                reject(new Error("Wallet connection cancelled"));
+              },
             },
-            onCancel: () => {
-              setState((prev) => ({
-                ...prev,
-                status: "disconnected",
-                isLoading: false,
-              }));
-              reject(new Error("User cancelled wallet connection"));
-            },
-          },
-          getStacksProvider(),
-        );
-      });
+            getStacksProvider(),
+          );
+        });
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to connect wallet";
+        if (message === "Wallet connection cancelled") return;
+        setState((prev) => ({
+          ...prev,
+          status: "error",
+          error: message,
+          isLoading: false,
+        }));
+      }
     },
     [getUserSession, resolveProviderName, setConnectedState],
   );
