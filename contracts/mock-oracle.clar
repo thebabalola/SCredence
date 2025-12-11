@@ -27,14 +27,14 @@
     (current-owner (var-get owner))
     (is-initialized (var-get initialized))
   )
-    ;; Set owner to tx-sender on first call if not set, then verify and initialize
-    (let ((owner-principal (unwrap! 
-      (if (is-none current-owner)
-        (var-set owner (some tx-sender))
-        current-owner
-      )
-      ERR_NOT_OWNER
-    )))
+    ;; Set owner to tx-sender on first call if not set
+    (if (is-none current-owner)
+      (var-set owner (some tx-sender))
+      true
+    )
+    
+    ;; Get the owner (now guaranteed to be set)
+    (let ((owner-principal (unwrap! (var-get owner) ERR_NOT_OWNER)))
       ;; Verify tx-sender equals owner
       (asserts! (is-eq tx-sender owner-principal) ERR_NOT_OWNER)
       
