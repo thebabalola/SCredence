@@ -85,3 +85,7 @@
   (var-get updater)
 )
 
+(define-read-only (is-initialized)
+  (var-get initialized)
+)
+
