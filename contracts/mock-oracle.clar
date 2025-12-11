@@ -81,3 +81,7 @@
   (ok (var-get btc-stx-price))
 )
 
+(define-read-only (get-updater)
+  (var-get updater)
+)
+
