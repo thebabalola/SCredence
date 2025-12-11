@@ -251,6 +251,19 @@ describe("Mock Oracle Contract Tests", () => {
       );
       expect(statusAfter.result).toBeBool(true);
     });
+
+    it("should return contract hash using Clarity 4 contract-hash?", () => {
+      // Get contract hash using Clarity 4 feature
+      const contractHash = simnet.callReadOnlyFn(
+        contractName,
+        "get-contract-hash",
+        [],
+        deployer
+      );
+      
+      // Contract hash should be a some value (optional buff 32)
+      expect(contractHash.result).toBeSome();
+    });
   });
 });
 
