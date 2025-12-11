@@ -40,13 +40,25 @@ describe("Mock Oracle Contract Tests", () => {
     });
 
     it("should not allow non-owner to initialize", () => {
-      const result = simnet.callPublicFn(
+      // First, deployer initializes (becomes owner)
+      const initDeployer = simnet.callPublicFn(
         contractName,
         "initialize",
         [Cl.principal(wallet1)],
-        wallet1
+        deployer
+      );
+      expect(initDeployer.result).toBeOk(Cl.bool(true));
+
+      // Now wallet2 tries to initialize, but wallet2 is not the owner
+      // The owner check happens before the initialized check, so it should fail with ERR_NOT_OWNER
+      const result = simnet.callPublicFn(
+        contractName,
+        "initialize",
+        [Cl.principal(wallet2)],
+        wallet2
       );
 
+      // Should fail because wallet2 is not the owner (deployer is)
       expect(result.result).toBeErr(Cl.uint(100)); // ERR_NOT_OWNER
     });
 
