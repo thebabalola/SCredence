@@ -27,7 +27,7 @@ describe("Mock Oracle Contract Tests", () => {
         [],
         deployer
       );
-      expect(isInitialized.result).toBeOk(Cl.bool(true));
+      expect(isInitialized.result).toBeBool(true);
       
       // Verify updater is set correctly
       const updater = simnet.callReadOnlyFn(
@@ -219,7 +219,7 @@ describe("Mock Oracle Contract Tests", () => {
         [],
         deployer
       );
-      expect(statusBefore.result).toBeOk(Cl.bool(false));
+      expect(statusBefore.result).toBeBool(false);
 
       // Initialize
       const init = simnet.callPublicFn(
@@ -237,7 +237,7 @@ describe("Mock Oracle Contract Tests", () => {
         [],
         deployer
       );
-      expect(statusAfter.result).toBeOk(Cl.bool(true));
+      expect(statusAfter.result).toBeBool(true);
     });
   });
 });
