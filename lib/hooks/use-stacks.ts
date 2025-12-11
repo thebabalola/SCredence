@@ -1,6 +1,19 @@
 import type { UserData } from "@stacks/auth";
 import { AppConfig, UserSession } from "@stacks/auth";
+import {
+  DEFAULT_PROVIDERS,
+  disconnect as disconnectStacks,
+  getStacksProvider,
+  getSelectedProviderId,
+  showConnect,
+} from "@stacks/connect";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import {
+  STACKS_APP_DETAILS,
+  STACKS_MANIFEST_PATH,
+  STACKS_REDIRECT_PATH,
+} from "@/lib/stacks-config";
 
 export type WalletStatus =
   | "idle"
@@ -92,18 +105,27 @@ export function useStacks(): UseStacksResult {
   }, []);
 
   const setConnectedState = useCallback(
-    (userData: UserData | null) => {
-      setState({
+    (userData: UserData | null, providerName?: string | null) => {
+      setState((prev) => ({
         status: userData ? "connected" : "disconnected",
         addresses: parseAddresses(userData),
         profile: parseProfile(userData),
-        providerName: state.providerName ?? null,
+        providerName: providerName ?? prev.providerName ?? null,
         error: null,
         isLoading: false,
-      });
+      }));
     },
-    [parseAddresses, parseProfile, state.providerName],
+    [parseAddresses, parseProfile],
   );
+
+  const resolveProviderName = useCallback(() => {
+    const provider = getStacksProvider() as { name?: string } | undefined;
+    if (provider?.name) return provider.name;
+
+    const selectedProviderId = getSelectedProviderId?.();
+    const matched = DEFAULT_PROVIDERS.find((item) => item.id === selectedProviderId);
+    return matched?.name ?? null;
+  }, []);
 
   useEffect(() => {
     hasHydrated.current = true;
@@ -129,13 +151,13 @@ export function useStacks(): UseStacksResult {
       if (session.isSignInPending()) {
         setState((prev) => ({ ...prev, status: "pending" }));
         const userData = await session.handlePendingSignIn();
-        setConnectedState(userData);
+        setConnectedState(userData, resolveProviderName());
         return;
       }
 
       if (session.isUserSignedIn()) {
         const userData = await session.loadUserData();
-        setConnectedState(userData);
+        setConnectedState(userData, resolveProviderName());
         return;
       }
 
@@ -154,7 +176,7 @@ export function useStacks(): UseStacksResult {
         isLoading: false,
       }));
     }
-  }, [getUserSession, setConnectedState]);
+  }, [getUserSession, resolveProviderName, setConnectedState]);
 
   useEffect(() => {
     if (!isBrowser) return;
@@ -163,24 +185,68 @@ export function useStacks(): UseStacksResult {
 
   const connect = useMemo<ConnectWallet>(
     () => async () => {
-      setState((prev) => ({ ...prev, status: "pending" }));
+      const session = getUserSession();
+      if (!session) return;
+      if (session.isUserSignedIn()) {
+        const userData = await session.loadUserData();
+        setConnectedState(userData);
+        return;
+      }
+
+      setState((prev) => ({ ...prev, status: "pending", isLoading: true }));
+
+      await new Promise<void>((resolve, reject) => {
+        showConnect(
+          {
+            appDetails: STACKS_APP_DETAILS,
+            redirectTo: STACKS_REDIRECT_PATH,
+            manifestPath: STACKS_MANIFEST_PATH,
+            sendToSignIn: true,
+            userSession: session,
+            defaultProviders: DEFAULT_PROVIDERS,
+            onFinish: async () => {
+              const userData = await session.loadUserData();
+              const providerName = resolveProviderName();
+              setConnectedState(userData, providerName);
+              resolve();
+            },
+            onCancel: () => {
+              setState((prev) => ({
+                ...prev,
+                status: "disconnected",
+                isLoading: false,
+              }));
+              reject(new Error("User cancelled wallet connection"));
+            },
+          },
+          getStacksProvider(),
+        );
+      });
     },
-    [],
+    [getUserSession, resolveProviderName, setConnectedState],
   );
 
   const disconnect = useMemo<DisconnectWallet>(
     () => async () => {
-      setState((prev) => ({ ...prev, status: "disconnected" }));
+      const session = getUserSession();
+      disconnectStacks();
+      session?.signUserOut();
+
+      setState({
+        ...initialState,
+        status: "disconnected",
+        isLoading: false,
+      });
     },
-    [],
+    [getUserSession],
   );
 
   const refresh = useMemo<RefreshWallet>(
     () => async () => {
       if (!hasHydrated.current) return;
-      setState((prev) => ({ ...prev }));
+      await bootstrapSession();
     },
-    [],
+    [bootstrapSession],
   );
 
   return {
