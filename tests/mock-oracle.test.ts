@@ -49,6 +49,26 @@ describe("Mock Oracle Contract Tests", () => {
 
       expect(result.result).toBeErr(Cl.uint(100)); // ERR_NOT_OWNER
     });
+
+    it("should prevent re-initialization", () => {
+      // First initialization
+      const init1 = simnet.callPublicFn(
+        contractName,
+        "initialize",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+      expect(init1.result).toBeOk(Cl.bool(true));
+
+      // Attempt second initialization
+      const init2 = simnet.callPublicFn(
+        contractName,
+        "initialize",
+        [Cl.principal(wallet2)],
+        deployer
+      );
+      expect(init2.result).toBeErr(Cl.uint(101)); // ERR_ALREADY_INITIALIZED
+    });
   });
 });
 
