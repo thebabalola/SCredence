@@ -102,6 +102,28 @@ describe("Mock Oracle Contract Tests", () => {
       );
       expect(price.result).toBeOk(newPrice);
     });
+
+    it("should not allow non-updater to update price", () => {
+      // Initialize with wallet1 as updater
+      const init = simnet.callPublicFn(
+        contractName,
+        "initialize",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+      expect(init.result).toBeOk(Cl.bool(true));
+
+      // Attempt to update price as wallet2 (not the updater)
+      const newPrice = Cl.uint(50000);
+      const result = simnet.callPublicFn(
+        contractName,
+        "update-price",
+        [newPrice],
+        wallet2
+      );
+
+      expect(result.result).toBeErr(Cl.uint(102)); // ERR_NOT_UPDATER
+    });
   });
 });
 
