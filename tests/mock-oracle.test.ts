@@ -275,12 +275,12 @@ describe("Mock Oracle Contract Tests", () => {
       // Verify it's a buffer (32 bytes)
       expect(hashValue.type).toBe("buffer");
       // Verify the buffer is 32 bytes (contract hash is always 32 bytes)
-      // BufferCV has a value property that contains the hex string
+      // BufferCV has a value property that contains the hex string (without 0x prefix)
       if (hashValue.type === "buffer") {
         const bufferValue = (hashValue as any).value as string;
         expect(bufferValue).toBeDefined();
-        // Hex string: 0x prefix + 64 hex chars = 32 bytes
-        expect(bufferValue.length).toBe(66); // 0x + 64 hex characters
+        // Hex string: 64 hex characters = 32 bytes (no 0x prefix in BufferCV.value)
+        expect(bufferValue.length).toBe(64); // 64 hex characters = 32 bytes
       }
     });
   });
