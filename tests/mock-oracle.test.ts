@@ -210,6 +210,35 @@ describe("Mock Oracle Contract Tests", () => {
       );
       expect(updater.result).toBeNone();
     });
+
+    it("should correctly track initialization status", () => {
+      // Check status before initialization
+      const statusBefore = simnet.callReadOnlyFn(
+        contractName,
+        "is-initialized",
+        [],
+        deployer
+      );
+      expect(statusBefore.result).toBeOk(Cl.bool(false));
+
+      // Initialize
+      const init = simnet.callPublicFn(
+        contractName,
+        "initialize",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+      expect(init.result).toBeOk(Cl.bool(true));
+
+      // Check status after initialization
+      const statusAfter = simnet.callReadOnlyFn(
+        contractName,
+        "is-initialized",
+        [],
+        deployer
+      );
+      expect(statusAfter.result).toBeOk(Cl.bool(true));
+    });
   });
 });
 
