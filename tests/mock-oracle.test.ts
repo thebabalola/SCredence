@@ -38,6 +38,17 @@ describe("Mock Oracle Contract Tests", () => {
       );
       expect(updater.result).toBeSome(Cl.principal(wallet1));
     });
+
+    it("should not allow non-owner to initialize", () => {
+      const result = simnet.callPublicFn(
+        contractName,
+        "initialize",
+        [Cl.principal(wallet1)],
+        wallet1
+      );
+
+      expect(result.result).toBeErr(Cl.uint(100)); // ERR_NOT_OWNER
+    });
   });
 });
 
