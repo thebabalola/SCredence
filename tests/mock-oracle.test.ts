@@ -179,6 +179,37 @@ describe("Mock Oracle Contract Tests", () => {
       );
       expect(price.result).toBeOk(Cl.uint(0));
     });
+
+    it("should return correct updater address", () => {
+      // Initialize with wallet1 as updater
+      const init = simnet.callPublicFn(
+        contractName,
+        "initialize",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+      expect(init.result).toBeOk(Cl.bool(true));
+
+      // Get updater
+      const updater = simnet.callReadOnlyFn(
+        contractName,
+        "get-updater",
+        [],
+        deployer
+      );
+      expect(updater.result).toBeSome(Cl.principal(wallet1));
+    });
+
+    it("should return none for updater before initialization", () => {
+      // Get updater before initialization
+      const updater = simnet.callReadOnlyFn(
+        contractName,
+        "get-updater",
+        [],
+        deployer
+      );
+      expect(updater.result).toBeNone();
+    });
   });
 });
 
