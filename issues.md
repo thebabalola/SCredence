@@ -9,15 +9,15 @@ This document outlines all the issues/tasks required to build the complete dual-
 
 #### Issue #16: Initialize Next.js Project
 **Priority:** High  
-**Status:** Pending
+**Status:** In Progress
 
 **Tasks:**
-- [ ] Create Next.js project with TypeScript, ESLint, Tailwind
+- [x] Create Next.js project with TypeScript, ESLint, Tailwind
 - [ ] Configure TypeScript path aliases (@/*)
-- [ ] Install Stacks dependencies (@stacks/connect, @stacks/transactions)
+- [x] Install Stacks dependencies (@stacks/connect, @stacks/transactions)
 - [ ] Install UI dependencies (lucide-react)
 - [ ] Set up environment variables structure
-- [ ] Configure Tailwind CSS
+- [x] Configure Tailwind CSS
 
 **Acceptance Criteria:**
 - Project structure is set up correctly
