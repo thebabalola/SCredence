@@ -8,36 +8,36 @@ This document outlines all the issues/tasks required to build the complete dual-
 
 #### Issue #1: Implement Mock Oracle Contract
 **Priority:** High  
-**Status:** Pending  
+**Status:** Completed  
 **Description:** Create the mock oracle contract for providing BTC/STX price data during development and testing.
 
 **Tasks:**
-- [ ] Define error constants with specific error codes:
+- [x] Define error constants with specific error codes:
   - ERR_NOT_OWNER (err u100)
   - ERR_ALREADY_INITIALIZED (err u101)
   - ERR_NOT_UPDATER (err u102)
   - ERR_NOT_INITIALIZED (err u103)
-- [ ] Define data variables:
+- [x] Define data variables:
   - `owner` (principal) - set to `tx-sender` at deployment
   - `updater` (principal) - set to `tx-sender` initially
   - `initialized` (bool) - set to false initially
   - `btc-stx-price` (uint) - set to u0 initially
-- [ ] Implement `initialize` function:
+- [x] Implement `initialize` function:
   - Verify `tx-sender` equals owner
   - Check `initialized` is false
   - Set `updater` to new-updater parameter
   - Set `initialized` to true
   - Return `(ok true)`
-- [ ] Implement `update-price` function:
+- [x] Implement `update-price` function:
   - Verify contract is initialized
   - Verify `tx-sender` equals updater
   - Set `btc-stx-price` to new-price parameter
   - Return `(ok true)`
-- [ ] Implement `get-price` read-only function:
+- [x] Implement `get-price` read-only function:
   - Return `(ok (var-get btc-stx-price))`
-- [ ] Implement `get-updater` read-only function:
+- [x] Implement `get-updater` read-only function:
   - Return `(var-get updater)`
-- [ ] Implement `is-initialized` read-only function:
+- [x] Implement `is-initialized` read-only function:
   - Return `(var-get initialized)`
 
 **Acceptance Criteria:**
