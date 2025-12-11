@@ -9,12 +9,16 @@ requirements = []
 [contracts.lending-pool]
 path = 'contracts/lending-pool.clar'
 clarity_version = 3
+epoch = '2.0'
 # clarity_version = 4  # Use for mainnet deployment
+# epoch = '3.0'  # Use with Clarity 4 for mainnet deployment
 
 [contracts.mock-oracle]
 path = 'contracts/mock-oracle.clar'
 clarity_version = 3
+epoch = '2.0'
 # clarity_version = 4  # Use for mainnet deployment
+# epoch = '3.0'  # Use with Clarity 4 for mainnet deployment
 
 [repl.analysis]
 passes = ['check_checker']
