@@ -53,3 +53,24 @@
   )
 )
 
+(define-public (update-price (new-price uint))
+  (let (
+    (is-initialized (var-get initialized))
+    (current-updater (var-get updater))
+  )
+    ;; Verify contract is initialized
+    (asserts! is-initialized ERR_NOT_INITIALIZED)
+    
+    ;; Verify tx-sender equals updater
+    (let ((updater-principal (unwrap! current-updater ERR_NOT_UPDATER)))
+      (asserts! (is-eq tx-sender updater-principal) ERR_NOT_UPDATER)
+    )
+    
+    ;; Set btc-stx-price to new-price
+    (var-set btc-stx-price new-price)
+    
+    ;; Return success
+    (ok true)
+  )
+)
+
