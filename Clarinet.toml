@@ -8,7 +8,8 @@ requirements = []
 
 [contracts.lending-pool]
 path = 'contracts/lending-pool.clar'
-clarity_version = 4
+clarity_version = 3
+# clarity_version = 4  # Use for mainnet deployment
 
 [contracts.mock-oracle]
 path = 'contracts/mock-oracle.clar'
