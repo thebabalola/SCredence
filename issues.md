@@ -98,11 +98,11 @@ This document outlines all the issues/tasks required to build the complete dual-
 
 #### Issue #3: Set Up Lending Pool Contract Structure
 **Priority:** High  
-**Status:** Pending  
+**Status:** Completed  
 **Note:** This contract uses Clarity 4 features (stacks-block-time, contract-hash?, restrict-assets?)
 
 **Tasks:**
-- [ ] Define error constants with specific error codes:
+- [x] Define error constants with specific error codes:
   - ERR_INVALID_WITHDRAW_AMOUNT (err u100)
   - ERR_EXCEEDED_MAX_BORROW (err u101)
   - ERR_CANNOT_BE_LIQUIDATED (err u102)
@@ -110,22 +110,22 @@ This document outlines all the issues/tasks required to build the complete dual-
   - ERR_INVALID_ORACLE (err u104) - Clarity 4: contract-hash? verification failed
   - ERR_INVALID_SBTC_CONTRACT (err u105) - Clarity 4: contract-hash? verification failed
   - ERR_INVALID_DEX_CONTRACT (err u106) - Clarity 4: contract-hash? verification failed
-- [ ] Define protocol constants with specific values:
+- [x] Define protocol constants with specific values:
   - LTV_PERCENTAGE = u70 (70% loan-to-value ratio)
   - INTEREST_RATE_PERCENTAGE = u10 (10% annual interest rate)
   - LIQUIDATION_THRESHOLD_PERCENTAGE = u100 (100% threshold)
   - ONE_YEAR_IN_SECS = u31556952 (seconds in a year)
-- [ ] Define data variables with initial values:
+- [x] Define data variables with initial values:
   - `total-sbtc-collateral` (uint) - initialized to u0
   - `total-stx-deposits` (uint) - initialized to u1 (to avoid division by zero)
   - `total-stx-borrows` (uint) - initialized to u0
   - `last-interest-accrual` (uint) - initialized to `stacks-block-time` (Clarity 4 feature)
   - `cumulative-yield-bips` (uint) - initialized to u0 (yield in basis points)
-- [ ] Define maps with proper structure:
+- [x] Define maps with proper structure:
   - `collateral` map: key `{ user: principal }`, value `{ amount: uint }`
   - `deposits` map: key `{ user: principal }`, value `{ amount: uint, yield-index: uint }`
   - `borrows` map: key `{ user: principal }`, value `{ amount: uint, last-accrued: uint }`
-- [ ] Create function stubs for all public and read-only functions with proper signatures
+- [x] Create function stubs for all public and read-only functions with proper signatures
 
 **Acceptance Criteria:**
 - All storage variables are properly defined
