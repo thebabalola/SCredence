@@ -52,11 +52,44 @@
 ;; ============================================
 ;; Public Functions
 ;; ============================================
+(define-public (get-sbtc-stx-price)
+  (ok u0)
+)
+
+(define-public (deposit-stx (amount uint))
+  (ok true)
+)
+
+(define-public (withdraw-stx (amount uint))
+  (ok true)
+)
+
+(define-public (borrow-stx (collateral-amount uint) (amount-stx uint))
+  (ok true)
+)
+
+(define-public (repay)
+  (ok true)
+)
+
+(define-public (liquidate (user principal))
+  (ok true)
+)
 
 ;; ============================================
 ;; Read-Only Functions
 ;; ============================================
+(define-read-only (get-pending-yield (user principal))
+  (ok u0)
+)
+
+(define-read-only (get-debt (user principal))
+  (ok u0)
+)
 
 ;; ============================================
 ;; Private Functions
 ;; ============================================
+(define-private (accrue-interest)
+  (ok true)
+)
