@@ -17,6 +17,10 @@
 ;; ============================================
 ;; Protocol Constants
 ;; ============================================
+(define-constant LTV_PERCENTAGE u70)
+(define-constant INTEREST_RATE_PERCENTAGE u10)
+(define-constant LIQUIDATION_THRESHOLD_PERCENTAGE u100)
+(define-constant ONE_YEAR_IN_SECS u31556952)
 
 ;; ============================================
 ;; Data Variables
