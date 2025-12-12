@@ -25,10 +25,29 @@
 ;; ============================================
 ;; Data Variables
 ;; ============================================
+(define-data-var total-sbtc-collateral uint u0)
+(define-data-var total-stx-deposits uint u1)
+(define-data-var total-stx-borrows uint u0)
+(define-data-var last-interest-accrual uint stacks-block-time)
+(define-data-var cumulative-yield-bips uint u0)
 
 ;; ============================================
 ;; Maps
 ;; ============================================
+(define-map collateral
+  { user: principal }
+  { amount: uint }
+)
+
+(define-map deposits
+  { user: principal }
+  { amount: uint, yield-index: uint }
+)
+
+(define-map borrows
+  { user: principal }
+  { amount: uint, last-accrued: uint }
+)
 
 ;; ============================================
 ;; Public Functions
