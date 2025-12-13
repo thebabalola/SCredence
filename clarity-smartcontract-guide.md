@@ -18,7 +18,65 @@ A comprehensive guide for writing Clarity smart contracts on Stacks, based on bu
 
 ### Prerequisites
 
-1. **Install Clarinet** - A toolkit for writing, testing, and deploying Clarity smart contracts
+- Node.js (v18+ recommended)
+- Git
+- A Stacks-compatible wallet (Leather)
+- Clarinet (see installation instructions below)
+
+### Installing Clarinet on Linux (Manual Binary Install)
+
+If the automatic installer or npm package is not available in your environment, you can install Clarinet manually from the released binaries.
+
+1. Download the Linux binary:
+   - Go to the official Clarinet releases page:  
+     `https://github.com/hirosystems/clarinet/releases`
+   - Under **Assets**, download the file:
+     - `clarinet-linux-x64-glibc.tar.gz` (recommended for Ubuntu/Debian Pop!_OS and other glibc-based distros)
+
+2. Extract the archive:
+
+   ```bash
+   cd ~/Downloads
+   tar -xzf clarinet-linux-x64-glibc.tar.gz
+   ```
+
+   This should produce a `clarinet` binary in the current directory.
+
+3. Move the binary into your local bin directory and make it executable:
+
+   ```bash
+   mkdir -p ~/.local/bin
+   mv clarinet ~/.local/bin/clarinet
+   chmod +x ~/.local/bin/clarinet
+   ```
+
+4. Add `~/.local/bin` to your PATH (so you can run `clarinet` from anywhere):
+
+   ```bash
+   echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+   source ~/.bashrc
+   ```
+
+5. Verify the installation:
+
+   ```bash
+   clarinet --version
+   ```
+
+   You should see output similar to:
+
+   ```text
+   clarinet 3.11.0
+   ```
+
+Once Clarinet is installed and available on your PATH, you can run commands like:
+
+- `clarinet check`
+- `clarinet console`
+- `clarinet deployments generate ...`
+- `clarinet deployment apply ...`
+
+1. **Verify Installed Clarinet** - A toolkit for writing, testing, and deploying Clarity smart contracts
    - Follow the installation guide: https://docs.hiro.so/clarinet/getting-started
    - Verify installation: `clarinet --version`
 
@@ -687,6 +745,7 @@ mnemonic = "your twelve word mnemonic phrase goes here"
 
 ```bash
 clarinet deployments generate --testnet --low-cost
+
 ```
 
 This creates a deployment plan in `deployments/default.testnet-plan.yaml`.
@@ -771,7 +830,7 @@ Confirm the deployment when prompted (press `Y`).
 
 ## Resources
 
-- [Clarity Language Reference](https://docs.stacks.co/docs/clarity)
+- [Clarity Language Documentation](https://docs.stacks.co/docs/clarity)
 - [Clarinet Documentation](https://docs.hiro.so/clarinet)
 - [Stacks Documentation](https://docs.stacks.co)
 - [Clarity Examples](https://github.com/stacksgov/clarity-examples)
