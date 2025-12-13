@@ -202,6 +202,12 @@ clarinet test
 
 ## Deployment
 
+### Mainnet Deployed Contracts
+
+The following contracts are deployed on Stacks mainnet:
+- Lending Pool (stackslend-v1): SPZYY7560YPR8BY63XNTDX36HBY1G8K0TST365B2.stackslend-v1
+- Mock Oracle (mock-oracle-v1): SPZYY7560YPR8BY63XNTDX36HBY1G8K0TST365B2.mock-oracle-v1
+
 ### Testnet Deployment
 
 1. Export your wallet mnemonic from your Stacks wallet
