@@ -3,6 +3,31 @@
 ;; Core structure for the dual-asset lending protocol
 ;; ============================================
 
+;; ====== temp test ======
+(define-data-var temp-counter uint u0)
+
+(define-public (increment-counter)
+  (begin
+    (var-set temp-counter (+ (var-get temp-counter) u1))
+    (ok (var-get temp-counter))
+  )
+)
+
+(define-public (decrement-counter)
+  (begin
+    (if (> (var-get temp-counter) u0)
+        (var-set temp-counter (- (var-get temp-counter) u1))
+        (var-set temp-counter u0)
+    )
+    (ok (var-get temp-counter))
+  )
+)
+
+(define-read-only (get-counter)
+  (ok (var-get temp-counter))
+)
+;; ====== temp test ======
+
 ;; ============================================
 ;; Error Constants
 ;; ============================================
