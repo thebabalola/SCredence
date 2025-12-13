@@ -1,5 +1,5 @@
 [project]
-name = 'lending-pool'
+name = 'stacks-lend'
 description = 'Dual asset lending protocol on Stacks'
 authors = []
 telemetry = true
@@ -11,12 +11,12 @@ requirements = [
   'SM1793C4R5PZ4NS4VQ4WMP7SKKYVH8JZEWSZ9HCCR.xyk-pool-sbtc-stx-v-1-1',
 ]
 
-[contracts.lending-pool]
+[contracts.stackslend-v1]
 path = 'contracts/lending-pool.clar'
 clarity_version = 4
 epoch = 'latest'
 
-[contracts.mock-oracle]
+[contracts.mock-oracle-v1]
 path = 'contracts/mock-oracle.clar'
 clarity_version = 4
 epoch = 'latest'
