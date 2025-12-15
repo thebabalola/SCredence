@@ -132,5 +132,14 @@
 ;; Private Functions
 ;; ============================================
 (define-private (accrue-interest)
-  (ok true)
+  (let (
+      (current-time stacks-block-time)
+      (last-accrual (var-get last-interest-accrual))
+      (dt (- current-time last-accrual))
+    )
+    (if (> dt u0)
+      (ok true) ;; Interest calculation to be implemented
+      (ok true)
+    )
+  )
 )
