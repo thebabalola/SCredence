@@ -84,7 +84,14 @@
 ;; Public Functions
 ;; ============================================
 (define-public (get-sbtc-stx-price)
-  (contract-call? .mock-oracle get-price)
+  (let (
+      ;; Verify oracle contract exists and get its hash
+      (oracle-hash (unwrap! (contract-hash? .mock-oracle) ERR_INVALID_ORACLE))
+    )
+    ;; Call oracle to get price, wrapped in restrict-assets?
+    (restrict-assets? (contract-call? .mock-oracle get-price)
+    )
+  )
 )
 
 (define-public (deposit-stx (amount uint))
