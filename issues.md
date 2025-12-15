@@ -166,28 +166,28 @@ This document outlines all the issues/tasks required to build the complete dual-
 
 #### Issue #5: Implement Deposit STX Function
 **Priority:** High  
-**Status:** Pending  
+**Status:** Completed  
 **Dependencies:** Issue #4
 
 **Tasks:**
-- [ ] Load user's existing deposit from `deposits` map using `map-get?`
-- [ ] Check user has no existing deposits (enforce withdraw before new deposit):
+- [x] Load user's existing deposit from `deposits` map using `map-get?`
+- [x] Check user has no existing deposits (enforce withdraw before new deposit):
   - Use `default-to u0` to get deposited amount
   - Assert deposited amount equals u0, otherwise return ERR_MUST_WITHDRAW_BEFORE_NEW_DEPOSIT
-- [ ] Accrue interest before deposit using `unwrap-panic (accrue-interest)`
-- [ ] Transfer STX from user to contract:
-  - Use `stx-transfer?` with amount, tx-sender, and `(as-contract tx-sender)`
-- [ ] Update deposits map with amount and yield-index:
+- [x] Accrue interest before deposit using `unwrap-panic (accrue-interest)`
+- [x] Transfer STX from user to contract:
+  - Use `stx-transfer?` with amount, tx-sender, and contract principal
+- [x] Update deposits map with amount and yield-index:
   - Set amount to `(+ deposited-stx amount)` (or just `amount` if no existing deposit)
   - Set yield-index to current `(var-get cumulative-yield-bips)`
-- [ ] Update total-stx-deposits variable: `(+ (var-get total-stx-deposits) amount)`
-- [ ] Return `(ok true)`
+- [x] Update total-stx-deposits variable: `(+ (var-get total-stx-deposits) amount)`
+- [x] Return `(ok true)`
 
 **Acceptance Criteria:**
-- Users can deposit STX successfully
-- Yield index is set correctly
-- Cannot deposit if existing position exists
-- Total deposits are tracked correctly
+- Users can deposit STX successfully ✅
+- Yield index is set correctly ✅
+- Cannot deposit if existing position exists ✅
+- Total deposits are tracked correctly ✅
 
 ---
 
