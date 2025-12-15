@@ -86,12 +86,12 @@
 (define-public (get-sbtc-stx-price)
   (begin
     ;; Verify oracle contract exists and get its hash (Clarity 4)
-    (unwrap! (contract-hash? .mock-oracle) ERR_INVALID_ORACLE)
+    (unwrap! (contract-hash? .mock-oracle-v1) ERR_INVALID_ORACLE)
 
-    ;; Call oracle to get price, wrapped in restrict-assets?
-    (restrict-assets?
-      (contract-call? .mock-oracle get-price)
-    )
+    ;; Call oracle to get price.
+    ;; Note: `restrict-assets?` usage was causing a compile error in this repo setup,
+    ;; so this is a direct contract call for now.
+    (contract-call? .mock-oracle-v1 get-price)
   )
 )
 
@@ -107,7 +107,8 @@
     (unwrap-panic (accrue-interest))
 
     ;; Transfer STX from user to contract
-    (unwrap! (stx-transfer? amount tx-sender (as-contract tx-sender)) (err u1))
+    ;; Use the contract principal as recipient
+    (unwrap! (stx-transfer? amount tx-sender .stackslend-v1) (err u1))
 
     ;; Record deposit + yield index snapshot
     (map-set deposits
