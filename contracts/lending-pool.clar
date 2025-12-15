@@ -84,18 +84,45 @@
 ;; Public Functions
 ;; ============================================
 (define-public (get-sbtc-stx-price)
-  (let (
-      ;; Verify oracle contract exists and get its hash
-      (oracle-hash (unwrap! (contract-hash? .mock-oracle) ERR_INVALID_ORACLE))
-    )
+  (begin
+    ;; Verify oracle contract exists and get its hash (Clarity 4)
+    (unwrap! (contract-hash? .mock-oracle) ERR_INVALID_ORACLE)
+
     ;; Call oracle to get price, wrapped in restrict-assets?
-    (restrict-assets? (contract-call? .mock-oracle get-price)
+    (restrict-assets?
+      (contract-call? .mock-oracle get-price)
     )
   )
 )
 
 (define-public (deposit-stx (amount uint))
-  (ok true)
+  (let (
+      (existing (map-get? deposits { user: tx-sender }))
+      (deposited-stx (default-to u0 (get amount existing)))
+    )
+    ;; Enforce: must withdraw before making a new deposit
+    (asserts! (is-eq deposited-stx u0) ERR_MUST_WITHDRAW_BEFORE_NEW_DEPOSIT)
+
+    ;; Accrue interest before changing totals / indices
+    (unwrap-panic (accrue-interest))
+
+    ;; Transfer STX from user to contract
+    (unwrap! (stx-transfer? amount tx-sender (as-contract tx-sender)) (err u1))
+
+    ;; Record deposit + yield index snapshot
+    (map-set deposits
+      { user: tx-sender }
+      {
+        amount: (+ deposited-stx amount),
+        yield-index: (var-get cumulative-yield-bips)
+      }
+    )
+
+    ;; Update total deposits
+    (var-set total-stx-deposits (+ (var-get total-stx-deposits) amount))
+
+    (ok true)
+  )
 )
 
 (define-public (withdraw-stx (amount uint))
