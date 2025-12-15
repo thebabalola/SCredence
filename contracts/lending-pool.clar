@@ -145,7 +145,10 @@
           (interest (/ interest-numerator interest-denominator))
           (new-yield (/ interest (var-get total-stx-deposits)))
         )
-        ;; State updates to be added
+        (var-set last-interest-accrual current-time)
+        (var-set cumulative-yield-bips
+          (+ (var-get cumulative-yield-bips) new-yield)
+        )
         (ok true)
       )
       (ok true)
