@@ -136,16 +136,16 @@ This document outlines all the issues/tasks required to build the complete dual-
 
 #### Issue #4: Implement Helper Functions
 **Priority:** High  
-**Status:** Pending  
+**Status:** Completed  
 **Dependencies:** Issue #3
 
 **Tasks:**
-- [ ] Implement `get-sbtc-stx-price` public function:
+- [x] Implement `get-sbtc-stx-price` public function:
   - Verify oracle contract using `contract-hash?` (Clarity 4 security feature)
   - Wrap oracle call with `restrict-assets?` to protect contract assets (Clarity 4)
   - Call `contract-call?` on `.mock-oracle` contract's `get-price` function
   - Return the price response
-- [ ] Implement `accrue-interest` private function:
+- [x] Implement `accrue-interest` private function:
   - Calculate time delta: `dt = stacks-block-time - (var-get last-interest-accrual)` (Clarity 4: direct timestamp access)
   - Calculate interest numerator: `(* u10000 (* (* (var-get total-stx-borrows) INTEREST_RATE_PERCENTAGE) dt))`
   - Calculate interest denominator: `(* ONE_YEAR_IN_SECS u100)`
