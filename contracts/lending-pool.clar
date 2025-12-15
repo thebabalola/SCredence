@@ -138,7 +138,16 @@
       (dt (- current-time last-accrual))
     )
     (if (> dt u0)
-      (ok true) ;; Interest calculation to be implemented
+      (let (
+          (total-borrows (var-get total-stx-borrows))
+          (interest-numerator (* u10000 (* (* total-borrows INTEREST_RATE_PERCENTAGE) dt)))
+          (interest-denominator (* ONE_YEAR_IN_SECS u100))
+          (interest (/ interest-numerator interest-denominator))
+          (new-yield (/ interest (var-get total-stx-deposits)))
+        )
+        ;; State updates to be added
+        (ok true)
+      )
       (ok true)
     )
   )
