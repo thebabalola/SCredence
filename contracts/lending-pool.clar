@@ -16,8 +16,8 @@
 (define-public (decrement-counter)
   (begin
     (if (> (var-get temp-counter) u0)
-        (var-set temp-counter (- (var-get temp-counter) u1))
-        (var-set temp-counter u0)
+      (var-set temp-counter (- (var-get temp-counter) u1))
+      (var-set temp-counter u0)
     )
     (ok (var-get temp-counter))
   )
@@ -66,19 +66,25 @@
 
 (define-map deposits
   { user: principal }
-  { amount: uint, yield-index: uint }
+  {
+    amount: uint,
+    yield-index: uint,
+  }
 )
 
 (define-map borrows
   { user: principal }
-  { amount: uint, last-accrued: uint }
+  {
+    amount: uint,
+    last-accrued: uint,
+  }
 )
 
 ;; ============================================
 ;; Public Functions
 ;; ============================================
 (define-public (get-sbtc-stx-price)
-  (ok u0)
+  (contract-call? .mock-oracle get-price)
 )
 
 (define-public (deposit-stx (amount uint))
@@ -89,7 +95,10 @@
   (ok true)
 )
 
-(define-public (borrow-stx (collateral-amount uint) (amount-stx uint))
+(define-public (borrow-stx
+    (collateral-amount uint)
+    (amount-stx uint)
+  )
   (ok true)
 )
 
