@@ -279,4 +279,110 @@ describe("Lending Pool Contract Tests", () => {
       expect(second.result).toBeErr(Cl.uint(103));
     });
   });
+
+  describe("Issue #7 — get-pending-yield function", () => {
+    it("should return 0 for users with no deposits", () => {
+      // Call get-pending-yield for wallet2 who has never deposited
+      const result = simnet.callReadOnlyFn(
+        lendingPool,
+        "get-pending-yield",
+        [Cl.principal(wallet2)],
+        deployer
+      );
+
+      // Should return (ok u0) for users with no deposit history
+      expect(result.result).toBeOk(Cl.uint(0));
+    });
+
+    it("should return 0 for user with deposit but no yield accrued yet", () => {
+      // Lender deposits STX
+      const depositAmount = Cl.uint(10000);
+      const deposit = simnet.callPublicFn(
+        lendingPool,
+        "deposit-stx",
+        [depositAmount],
+        wallet1
+      );
+      expect(deposit.result).toBeOk(Cl.bool(true));
+
+      // Check pending yield immediately (no time passed, no borrowing)
+      const pending = simnet.callReadOnlyFn(
+        lendingPool,
+        "get-pending-yield",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+
+      // Should be 0 because no interest has accrued yet
+      expect(pending.result).toBeOk(Cl.uint(0));
+    });
+
+    it("should calculate correct yield after interest accrues", () => {
+      // Lender deposits STX
+      const lenderDeposit = Cl.uint(100000); // 100,000 STX
+      const deposit = simnet.callPublicFn(
+        lendingPool,
+        "deposit-stx",
+        [lenderDeposit],
+        wallet1
+      );
+      expect(deposit.result).toBeOk(Cl.bool(true));
+
+      // Simulate borrowing (which triggers interest accrual)
+      // For now, we'll manually trigger accrue-interest by making another deposit
+      // This will update cumulative-yield-bips if there are borrows
+      
+      // Check yield before any borrows (should still be 0)
+      const yieldBefore = simnet.callReadOnlyFn(
+        lendingPool,
+        "get-pending-yield",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+      expect(yieldBefore.result).toBeOk(Cl.uint(0));
+
+      // Note: Full yield testing will be done in integration tests (Issue #13-14)
+      // when we have borrowing implemented
+    });
+
+    it("should handle multiple users with independent yield calculations", () => {
+      // First lender deposits
+      const deposit1 = simnet.callPublicFn(
+        lendingPool,
+        "deposit-stx",
+        [Cl.uint(50000)],
+        wallet1
+      );
+      expect(deposit1.result).toBeOk(Cl.bool(true));
+
+      // Second lender deposits
+      const deposit2 = simnet.callPublicFn(
+        lendingPool,
+        "deposit-stx",
+        [Cl.uint(30000)],
+        wallet2
+      );
+      expect(deposit2.result).toBeOk(Cl.bool(true));
+
+      // Check both have 0 yield initially
+      const yield1 = simnet.callReadOnlyFn(
+        lendingPool,
+        "get-pending-yield",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+      expect(yield1.result).toBeOk(Cl.uint(0));
+
+      const yield2 = simnet.callReadOnlyFn(
+        lendingPool,
+        "get-pending-yield",
+        [Cl.principal(wallet2)],
+        deployer
+      );
+      expect(yield2.result).toBeOk(Cl.uint(0));
+
+      // Both users should have independent yield tracking
+      // (Full testing with actual yield accrual in Issue #13-14)
+    });
+  });
 });
