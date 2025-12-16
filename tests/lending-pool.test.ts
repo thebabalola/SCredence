@@ -385,4 +385,199 @@ describe("Lending Pool Contract Tests", () => {
       // (Full testing with actual yield accrual in Issue #13-14)
     });
   });
+
+  describe("Issue #6 — withdraw-stx function", () => {
+    it("should allow user to withdraw partial amount", () => {
+      // Deposit STX first
+      const depositAmount = Cl.uint(10000);
+      const deposit = simnet.callPublicFn(
+        lendingPool,
+        "deposit-stx",
+        [depositAmount],
+        wallet1
+      );
+      expect(deposit.result).toBeOk(Cl.bool(true));
+
+      // Withdraw partial amount
+      const withdrawAmount = Cl.uint(4000);
+      const withdraw = simnet.callPublicFn(
+        lendingPool,
+        "withdraw-stx",
+        [withdrawAmount],
+        wallet1
+      );
+
+      // Should succeed
+      expect(withdraw.result).toBeOk(Cl.bool(true));
+    });
+
+    it("should allow user to withdraw full amount", () => {
+      // Deposit STX
+      const depositAmount = Cl.uint(5000);
+      const deposit = simnet.callPublicFn(
+        lendingPool,
+        "deposit-stx",
+        [depositAmount],
+        wallet1
+      );
+      expect(deposit.result).toBeOk(Cl.bool(true));
+
+      // Withdraw full amount
+      const withdraw = simnet.callPublicFn(
+        lendingPool,
+        "withdraw-stx",
+        [depositAmount],
+        wallet1
+      );
+
+      // Should succeed
+      expect(withdraw.result).toBeOk(Cl.bool(true));
+    });
+
+    it("should prevent withdrawing more than deposited (ERR_INVALID_WITHDRAW_AMOUNT)", () => {
+      // Deposit STX
+      const depositAmount = Cl.uint(5000);
+      const deposit = simnet.callPublicFn(
+        lendingPool,
+        "deposit-stx",
+        [depositAmount],
+        wallet1
+      );
+      expect(deposit.result).toBeOk(Cl.bool(true));
+
+      // Try to withdraw more than deposited
+      const withdrawAmount = Cl.uint(6000);
+      const withdraw = simnet.callPublicFn(
+        lendingPool,
+        "withdraw-stx",
+        [withdrawAmount],
+        wallet1
+      );
+
+      // Should fail with ERR_INVALID_WITHDRAW_AMOUNT (u100)
+      expect(withdraw.result).toBeErr(Cl.uint(100));
+    });
+
+    it("should prevent withdrawal if user has no deposit (ERR_INVALID_WITHDRAW_AMOUNT)", () => {
+      // Try to withdraw without depositing first
+      const withdrawAmount = Cl.uint(1000);
+      const withdraw = simnet.callPublicFn(
+        lendingPool,
+        "withdraw-stx",
+        [withdrawAmount],
+        wallet2
+      );
+
+      // Should fail with ERR_INVALID_WITHDRAW_AMOUNT (u100)
+      expect(withdraw.result).toBeErr(Cl.uint(100));
+    });
+
+    it("should include pending yield in withdrawal (currently 0 without borrows)", () => {
+      // Deposit STX
+      const depositAmount = Cl.uint(10000);
+      const deposit = simnet.callPublicFn(
+        lendingPool,
+        "deposit-stx",
+        [depositAmount],
+        wallet1
+      );
+      expect(deposit.result).toBeOk(Cl.bool(true));
+
+      // Check pending yield (should be 0 without any borrows)
+      const pendingYield = simnet.callReadOnlyFn(
+        lendingPool,
+        "get-pending-yield",
+        [Cl.principal(wallet1)],
+        deployer
+      );
+      expect(pendingYield.result).toBeOk(Cl.uint(0));
+
+      // Withdraw - should transfer amount + yield (0 in this case)
+      const withdraw = simnet.callPublicFn(
+        lendingPool,
+        "withdraw-stx",
+        [depositAmount],
+        wallet1
+      );
+      expect(withdraw.result).toBeOk(Cl.bool(true));
+
+      // Note: Full yield testing with actual accrual in Issue #13-14
+    });
+
+    it("should update total-stx-deposits correctly", () => {
+      // Get initial total
+      const initialTotal = simnet.getDataVar(lendingPool, "total-stx-deposits");
+      const initialValue = (initialTotal as any).value;
+
+      // Deposit STX
+      const depositAmount = Cl.uint(8000);
+      const deposit = simnet.callPublicFn(
+        lendingPool,
+        "deposit-stx",
+        [depositAmount],
+        wallet1
+      );
+      expect(deposit.result).toBeOk(Cl.bool(true));
+
+      // Check total increased
+      const afterDeposit = simnet.getDataVar(lendingPool, "total-stx-deposits");
+      const afterDepositValue = (afterDeposit as any).value;
+      expect(afterDepositValue).toBe(initialValue + 8000n);
+
+      // Withdraw partial
+      const withdrawAmount = Cl.uint(3000);
+      const withdraw = simnet.callPublicFn(
+        lendingPool,
+        "withdraw-stx",
+        [withdrawAmount],
+        wallet1
+      );
+      expect(withdraw.result).toBeOk(Cl.bool(true));
+
+      // Check total decreased by withdrawal amount
+      const afterWithdraw = simnet.getDataVar(lendingPool, "total-stx-deposits");
+      const afterWithdrawValue = (afterWithdraw as any).value;
+      expect(afterWithdrawValue).toBe(afterDepositValue - 3000n);
+    });
+
+    it("should handle multiple users withdrawing independently", () => {
+      // User 1 deposits
+      const deposit1 = simnet.callPublicFn(
+        lendingPool,
+        "deposit-stx",
+        [Cl.uint(5000)],
+        wallet1
+      );
+      expect(deposit1.result).toBeOk(Cl.bool(true));
+
+      // User 2 deposits
+      const deposit2 = simnet.callPublicFn(
+        lendingPool,
+        "deposit-stx",
+        [Cl.uint(3000)],
+        wallet2
+      );
+      expect(deposit2.result).toBeOk(Cl.bool(true));
+
+      // User 1 withdraws
+      const withdraw1 = simnet.callPublicFn(
+        lendingPool,
+        "withdraw-stx",
+        [Cl.uint(2000)],
+        wallet1
+      );
+      expect(withdraw1.result).toBeOk(Cl.bool(true));
+
+      // User 2 withdraws
+      const withdraw2 = simnet.callPublicFn(
+        lendingPool,
+        "withdraw-stx",
+        [Cl.uint(1000)],
+        wallet2
+      );
+      expect(withdraw2.result).toBeOk(Cl.bool(true));
+
+      // Both withdrawals should succeed independently
+    });
+  });
 });
