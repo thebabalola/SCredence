@@ -229,24 +229,29 @@ This document outlines all the issues/tasks required to build the complete dual-
 
 #### Issue #7: Implement Get Pending Yield Function
 **Priority:** Medium  
-**Status:** Pending  
+**Status:** Completed  
 **Dependencies:** Issue #5
 
 **Tasks:**
-- [ ] Load user's deposit information from `deposits` map:
+- [x] Load user's deposit information from `deposits` map:
   - Get `amount-stx` using `default-to u0`
   - Get `yield-index` using `default-to u0`
-- [ ] Calculate delta between current cumulative-yield-bips and user's yield-index:
+- [x] Calculate delta between current cumulative-yield-bips and user's yield-index:
   - `delta = (- (var-get cumulative-yield-bips) yield-index)`
-- [ ] Calculate pending yield in basis points:
+- [x] Calculate pending yield in basis points:
   - `pending-yield = (/ (* amount-stx delta) u10000)`
   - Divide by 10000 because cumulative-yield-bips is in basis points
-- [ ] Return `(ok pending-yield)`
+- [x] Return `(ok pending-yield)`
 
 **Acceptance Criteria:**
-- Returns correct pending yield for lender
-- Handles users with no deposits (returns 0)
-- Calculation is accurate
+- Returns correct pending yield for lender ✅
+- Handles users with no deposits (returns 0) ✅
+- Calculation is accurate ✅
+- **Tests:** ✅ **Fully tested** (4/4 tests passing)
+  - Returns 0 for users with no deposits
+  - Returns 0 for users with deposits but no yield accrued
+  - Calculates correct yield after interest accrues
+  - Handles multiple users with independent yield tracking
 
 ---
 
