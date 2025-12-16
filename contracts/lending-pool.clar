@@ -161,7 +161,19 @@
 ;; Read-Only Functions
 ;; ============================================
 (define-read-only (get-pending-yield (user principal))
-  (ok u0)
+  (let (
+      (deposit (map-get? deposits { user: user }))
+      (amount-stx (default-to u0 (get amount deposit)))
+      (yield-index (default-to u0 (get yield-index deposit)))
+    )
+    ;; Calculate delta between current cumulative yield and user's snapshot
+    (let (
+        (delta (- (var-get cumulative-yield-bips) yield-index))
+        (pending-yield (/ (* amount-stx delta) u10000))
+      )
+      (ok pending-yield)
+    )
+  )
 )
 
 (define-read-only (get-debt (user principal))
