@@ -138,7 +138,33 @@
     ;; Accrue interest before withdrawal
     (unwrap-panic (accrue-interest))
     
-    (ok true)
+    ;; Calculate pending yield and new amount
+    (let (
+        (pending-yield (unwrap-panic (get-pending-yield tx-sender)))
+        (new-amount (- deposited-stx amount))
+      )
+      ;; Update deposits map
+      (if (is-eq new-amount u0)
+        ;; Full withdrawal - delete entry
+        (map-delete deposits { user: tx-sender })
+        ;; Partial withdrawal - update entry
+        (map-set deposits
+          { user: tx-sender }
+          {
+            amount: new-amount,
+            yield-index: (var-get cumulative-yield-bips)
+          }
+        )
+      )
+      
+      ;; Update total deposits
+      (var-set total-stx-deposits (- (var-get total-stx-deposits) amount))
+      
+      ;; Transfer STX + yield to user (contract sends to user)
+      (try! (stx-transfer? (+ amount pending-yield) .stackslend-v1 tx-sender))
+      
+      (ok true)
+    )
   )
 )
 
