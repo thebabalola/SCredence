@@ -127,7 +127,19 @@
 )
 
 (define-public (withdraw-stx (amount uint))
-  (ok true)
+  (let (
+      (deposit (unwrap! (map-get? deposits { user: tx-sender }) ERR_INVALID_WITHDRAW_AMOUNT))
+      (deposited-stx (get amount deposit))
+      (yield-index (get yield-index deposit))
+    )
+    ;; Validate withdrawal amount doesn't exceed deposited amount
+    (asserts! (>= deposited-stx amount) ERR_INVALID_WITHDRAW_AMOUNT)
+    
+    ;; Accrue interest before withdrawal
+    (unwrap-panic (accrue-interest))
+    
+    (ok true)
+  )
 )
 
 (define-public (borrow-stx
