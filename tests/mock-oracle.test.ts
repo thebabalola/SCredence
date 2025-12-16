@@ -6,7 +6,7 @@ const deployer = accounts.get("deployer")!;
 const wallet1 = accounts.get("wallet_1")!;
 const wallet2 = accounts.get("wallet_2")!;
 
-const contractName = "mock-oracle";
+const contractName = "mock-oracle-v1";
 
 describe("Mock Oracle Contract Tests", () => {
   describe("Initialization", () => {
@@ -15,26 +15,26 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "initialize",
         [Cl.principal(wallet1)],
-        deployer
+        deployer,
       );
 
       expect(result.result).toBeOk(Cl.bool(true));
-      
+
       // Verify initialized status
       const isInitialized = simnet.callReadOnlyFn(
         contractName,
         "is-initialized",
         [],
-        deployer
+        deployer,
       );
       expect(isInitialized.result).toBeBool(true);
-      
+
       // Verify updater is set correctly
       const updater = simnet.callReadOnlyFn(
         contractName,
         "get-updater",
         [],
-        deployer
+        deployer,
       );
       expect(updater.result).toBeSome(Cl.principal(wallet1));
     });
@@ -45,7 +45,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "initialize",
         [Cl.principal(wallet1)],
-        deployer
+        deployer,
       );
       expect(initDeployer.result).toBeOk(Cl.bool(true));
 
@@ -55,7 +55,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "initialize",
         [Cl.principal(wallet2)],
-        wallet2
+        wallet2,
       );
 
       // Should fail because wallet2 is not the owner (deployer is)
@@ -68,7 +68,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "initialize",
         [Cl.principal(wallet1)],
-        deployer
+        deployer,
       );
       expect(init1.result).toBeOk(Cl.bool(true));
 
@@ -77,7 +77,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "initialize",
         [Cl.principal(wallet2)],
-        deployer
+        deployer,
       );
       expect(init2.result).toBeErr(Cl.uint(101)); // ERR_ALREADY_INITIALIZED
     });
@@ -90,7 +90,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "initialize",
         [Cl.principal(wallet1)],
-        deployer
+        deployer,
       );
       expect(init.result).toBeOk(Cl.bool(true));
 
@@ -100,7 +100,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "update-price",
         [newPrice],
-        wallet1
+        wallet1,
       );
 
       expect(result.result).toBeOk(Cl.bool(true));
@@ -110,7 +110,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "get-price",
         [],
-        deployer
+        deployer,
       );
       expect(price.result).toBeOk(newPrice);
     });
@@ -121,7 +121,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "initialize",
         [Cl.principal(wallet1)],
-        deployer
+        deployer,
       );
       expect(init.result).toBeOk(Cl.bool(true));
 
@@ -131,7 +131,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "update-price",
         [newPrice],
-        wallet2
+        wallet2,
       );
 
       expect(result.result).toBeErr(Cl.uint(102)); // ERR_NOT_UPDATER
@@ -144,7 +144,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "update-price",
         [newPrice],
-        wallet1
+        wallet1,
       );
 
       expect(result.result).toBeErr(Cl.uint(103)); // ERR_NOT_INITIALIZED
@@ -158,7 +158,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "initialize",
         [Cl.principal(wallet1)],
-        deployer
+        deployer,
       );
       expect(init.result).toBeOk(Cl.bool(true));
 
@@ -167,7 +167,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "update-price",
         [expectedPrice],
-        wallet1
+        wallet1,
       );
       expect(update.result).toBeOk(Cl.bool(true));
 
@@ -176,7 +176,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "get-price",
         [],
-        deployer
+        deployer,
       );
       expect(price.result).toBeOk(expectedPrice);
     });
@@ -187,7 +187,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "get-price",
         [],
-        deployer
+        deployer,
       );
       expect(price.result).toBeOk(Cl.uint(0));
     });
@@ -198,7 +198,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "initialize",
         [Cl.principal(wallet1)],
-        deployer
+        deployer,
       );
       expect(init.result).toBeOk(Cl.bool(true));
 
@@ -207,7 +207,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "get-updater",
         [],
-        deployer
+        deployer,
       );
       expect(updater.result).toBeSome(Cl.principal(wallet1));
     });
@@ -218,7 +218,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "get-updater",
         [],
-        deployer
+        deployer,
       );
       expect(updater.result).toBeNone();
     });
@@ -229,7 +229,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "is-initialized",
         [],
-        deployer
+        deployer,
       );
       expect(statusBefore.result).toBeBool(false);
 
@@ -238,7 +238,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "initialize",
         [Cl.principal(wallet1)],
-        deployer
+        deployer,
       );
       expect(init.result).toBeOk(Cl.bool(true));
 
@@ -247,7 +247,7 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "is-initialized",
         [],
-        deployer
+        deployer,
       );
       expect(statusAfter.result).toBeBool(true);
     });
@@ -258,20 +258,20 @@ describe("Mock Oracle Contract Tests", () => {
         contractName,
         "get-contract-hash",
         [],
-        deployer
+        deployer,
       );
-      
+
       // contract-hash? returns an optional (some buff 32 or none)
       // The SDK wraps read-only function results in ok and unwraps the optional
       // In simnet, it should return some value for the deployed contract
       expect(contractHash.result.type).toBe("ok");
-      
+
       // The SDK unwraps the optional, so if contract-hash? returns (some buff),
       // the value inside ok will be the buff directly
       // Access value property with type assertion since we've verified it's ok
       const result = contractHash.result as { type: "ok"; value: any };
       const hashValue = result.value;
-      
+
       // Verify it's a buffer (32 bytes)
       expect(hashValue.type).toBe("buffer");
       // Verify the buffer is 32 bytes (contract hash is always 32 bytes)
@@ -285,4 +285,3 @@ describe("Mock Oracle Contract Tests", () => {
     });
   });
 });
-
