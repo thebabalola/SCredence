@@ -22,6 +22,7 @@ const wallet2 = accounts.get("wallet_2")!;
 
 const lendingPool = "stackslend-v1";
 const oracle = "mock-oracle-v1";
+const sbtcToken = "sbtc-token";
 
 describe("Lending Pool Contract Tests", () => {
   describe("Issue #3 — Contract Structure", () => {
@@ -157,7 +158,7 @@ describe("Lending Pool Contract Tests", () => {
         expect(source).toContain("define-public (deposit-stx");
         expect(source).toContain("define-public (withdraw-stx");
         expect(source).toContain("define-public (borrow-stx");
-        expect(source).toContain("define-public (repay)");
+        expect(source).toContain("define-public (repay");
         expect(source).toContain("define-public (liquidate");
       });
 
@@ -201,8 +202,13 @@ describe("Lending Pool Contract Tests", () => {
         expect(borrow.result).toBeDefined();
 
         // repay
-        const repay = simnet.callPublicFn(lendingPool, "repay", [], wallet2);
-        expect(repay.result.type).toBe("ok");
+        const repay = simnet.callPublicFn(
+          lendingPool, 
+          "repay", 
+          [Cl.contractPrincipal(deployer, sbtcToken)], 
+          wallet2
+        );
+        expect(repay.result).toBeErr(Cl.uint(107));
 
         // liquidate
         const liquidate = simnet.callPublicFn(
@@ -705,6 +711,66 @@ describe("Lending Pool Contract Tests", () => {
 
       // ERR_INVALID_SBTC_CONTRACT (u105)
       expect(borrow.result).toBeErr(Cl.uint(105));
+    });
+  });
+
+  describe("Issue #9 — repay function", () => {
+    it("should fail if user has no debt", () => {
+      const repay = simnet.callPublicFn(
+        lendingPool,
+        "repay",
+        [Cl.contractPrincipal(deployer, sbtcToken)],
+        wallet1
+      );
+      // ERR_NO_BORROW_TO_REPAY (u107)
+      expect(repay.result).toBeErr(Cl.uint(107));
+    });
+
+    it("should allow full repayment and clear state", () => {
+      // 0. Setup: Mint 1000 sBTC
+      simnet.callPublicFn(sbtcToken, "mint", [Cl.uint(1000), Cl.standardPrincipal(wallet1)], deployer);
+      
+      // 1. Seed Pool (deployer deposits 10000 STX)
+      simnet.callPublicFn(lendingPool, "deposit-stx", [Cl.uint(10000)], deployer);
+
+      // 2. Initialize Price (2.0)
+      simnet.callPublicFn(oracle, "initialize", [Cl.standardPrincipal(deployer)], deployer);
+      simnet.callPublicFn(oracle, "update-price", [Cl.uint(2)], deployer);
+
+      // 3. Borrow 100 STX
+      // Collateral 100 * 2 = 200. Max Borrow 140. Request 100.
+      const borrow = simnet.callPublicFn(
+        lendingPool,
+        "borrow-stx",
+        [
+          Cl.contractPrincipal(deployer, sbtcToken),
+          Cl.uint(100),
+          Cl.uint(100)
+        ],
+        wallet1
+      );
+      expect(borrow.result).toBeOk(Cl.bool(true));
+
+      // 4. Verify Debt Exists
+      const borrowsBefore = simnet.getMapEntry(lendingPool, "borrows", Cl.tuple({ user: Cl.standardPrincipal(wallet1) }));
+      expect(borrowsBefore).toBeDefined();
+
+      // 5. Repay
+      const repay = simnet.callPublicFn(
+        lendingPool,
+        "repay",
+        [Cl.contractPrincipal(deployer, sbtcToken)],
+        wallet1
+      );
+      
+      expect(repay.result).toBeOk(Cl.bool(true));
+
+      // 6. Verify Maps Cleared
+      const borrowsAfter = simnet.getMapEntry(lendingPool, "borrows", Cl.tuple({ user: Cl.standardPrincipal(wallet1) }));
+      expect(borrowsAfter).toEqual({ type: "none" }); // Should be deleted
+
+      const collateralAfter = simnet.getMapEntry(lendingPool, "collateral", Cl.tuple({ user: Cl.standardPrincipal(wallet1) }));
+      expect(collateralAfter).toEqual({ type: "none" }); // Should be deleted
     });
   });
 });
