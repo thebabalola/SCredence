@@ -41,6 +41,16 @@ plan:
             path: contracts/mock-oracle.clar
             clarity-version: 4
         - emulated-contract-publish:
+            contract-name: traits
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/traits.clar
+            clarity-version: 4
+        - emulated-contract-publish:
+            contract-name: sbtc-token
+            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            path: contracts/sbtc-token.clar
+            clarity-version: 4
+        - emulated-contract-publish:
             contract-name: stackslend-v1
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/lending-pool.clar

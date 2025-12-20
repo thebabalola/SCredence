@@ -267,8 +267,8 @@ This document outlines all the issues/tasks required to build the complete dual-
 
 #### Issue #8: Implement Borrow STX Function
 **Priority:** High  
-**Status:** Pending  
-**Dependencies:** Issue #4
+**Status:** Completed  
+**Dependencies:** Issue #5, Issue #10
 
 **Tasks:**
 - [ ] Load user's existing collateral and borrow information:
