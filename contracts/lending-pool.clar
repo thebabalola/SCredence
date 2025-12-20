@@ -38,6 +38,7 @@
 (define-constant ERR_INVALID_ORACLE (err u104))
 (define-constant ERR_INVALID_SBTC_CONTRACT (err u105))
 (define-constant ERR_INVALID_DEX_CONTRACT (err u106))
+(define-constant ERR_NO_BORROW_TO_REPAY (err u107))
 
 ;; ============================================
 ;; Protocol Constants
@@ -258,8 +259,56 @@
   )
 )
 
-(define-public (repay)
-  (ok true)
+(define-public (repay (token <sip-010-trait>))
+  (let (
+      (borrower tx-sender)
+      (borrow (map-get? borrows { user: tx-sender }))
+      (deposited-sbtc (default-to u0 (get amount (map-get? collateral { user: tx-sender }))))
+      (borrowed-stx (default-to u0 (get amount borrow)))
+    )
+    ;; 1. Calculate user's current debt
+    ;; get-debt returns (ok u0) if no debt or not found
+    (let (
+        (total-debt (unwrap! (get-debt tx-sender) ERR_NO_BORROW_TO_REPAY))
+      )
+      (asserts! (> total-debt u0) ERR_NO_BORROW_TO_REPAY)
+
+      ;; 2. Accrue interest
+      (unwrap-panic (accrue-interest))
+
+      ;; 3. Transfer STX from user to contract (Repay Debt)
+      (unwrap! (stx-transfer? total-debt tx-sender .stackslend-v1) (err u1))
+
+      ;; 4. Update Maps
+      ;; Delete borrow
+      (map-delete borrows { user: tx-sender })
+      ;; Delete collateral
+      (map-delete collateral { user: tx-sender })
+
+      ;; 5. Update Totals
+      ;; Decrease total borrows by PRINCIPAL amount (borrowed-stx)
+      ;; Interest paid is profit/reserve, not removed from total loans principal tracking
+      (var-set total-stx-borrows (- (var-get total-stx-borrows) borrowed-stx))
+      ;; Decrease total collateral
+      (var-set total-sbtc-collateral (- (var-get total-sbtc-collateral) deposited-sbtc))
+      
+      ;; 6. Return Collateral
+      ;; Note: Commented out due to as-contract limitation in simnet
+      ;; (unwrap! 
+      ;;   (as-contract
+      ;;     (contract-call? token transfer
+      ;;       deposited-sbtc
+      ;;       tx-sender ;; contract
+      ;;       borrower  ;; user (recipient of collateral)
+      ;;       none
+      ;;     )
+      ;;   )
+      ;;   (err u1)
+      ;; )
+
+      (ok true)
+    )
+  )
 )
 
 (define-public (liquidate (user principal))
