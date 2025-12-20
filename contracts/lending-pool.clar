@@ -205,7 +205,24 @@
 )
 
 (define-read-only (get-debt (user principal))
-  (ok u0)
+  (let (
+      (borrow (map-get? borrows { user: user }))
+      (amount (default-to u0 (get amount borrow)))
+      (last-accrued (default-to (var-get last-interest-accrual) (get last-accrued borrow)))
+    )
+    (if (> amount u0)
+      (let (
+          (current-time stacks-block-time)
+          (dt (- current-time last-accrued))
+          (interest-numerator (* u10000 (* (* amount INTEREST_RATE_PERCENTAGE) dt)))
+          (interest-denominator (* ONE_YEAR_IN_SECS u100))
+          (interest (/ interest-numerator interest-denominator))
+        )
+        (ok (+ amount interest))
+      )
+      (ok u0)
+    )
+  )
 )
 
 ;; ============================================
