@@ -632,6 +632,9 @@ describe("Lending Pool Contract Tests", () => {
     it("should allow borrow within LTV limit", () => {
       // 0. Mint sBTC to wallet1
       simnet.callPublicFn(sbtcToken, "mint", [Cl.uint(1000), Cl.standardPrincipal(wallet1)], deployer);
+      
+      // Seed the pool with STX (deployer deposits) so borrowing can succeed
+      simnet.callPublicFn(lendingPool, "deposit-stx", [Cl.uint(10000)], deployer);
 
       // 1. Ensure price is set
       simnet.callPublicFn(
