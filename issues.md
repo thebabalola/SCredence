@@ -309,7 +309,7 @@ This document outlines all the issues/tasks required to build the complete dual-
 
 #### Issue #9: Implement Repay Function
 **Priority:** High  
-**Status:** Pending  
+**Status:** completed..
 **Dependencies:** Issue #8
 
 **Tasks:**
@@ -343,17 +343,17 @@ This document outlines all the issues/tasks required to build the complete dual-
 **Dependencies:** Issue #8
 
 **Tasks:**
-- [ ] Load user's borrow information from `borrows` map:
-  - Get `borrowed-stx` (amount) using `default-to u0`
-  - Get `last-accrued` (timestamp) using `default-to u0`
-- [ ] Get current timestamp using `stacks-block-time` (Clarity 4: direct timestamp access)
-- [ ] Calculate time delta since last accrual: `dt = (- stacks-block-time last-accrued)`
-- [ ] Calculate interest:
-  - `interest-numerator = (* borrowed-stx INTEREST_RATE_PERCENTAGE dt)`
-  - `interest-denominator = (* ONE_YEAR_IN_SECS u100)`
-  - `interest = (/ interest-numerator interest-denominator)`
-- [ ] Calculate total debt: `accrued-interest = (+ borrowed-stx interest)`
-- [ ] Return `(ok accrued-interest)`
+- [x] Load user's borrow information from `borrows` map:
+  - [x] Get `borrowed-stx` (amount) using `default-to u0`
+  - [x] Get `last-accrued` (timestamp) using `default-to u0`
+- [x] Get current timestamp using `stacks-block-time` (Clarity 4: direct timestamp access)
+- [x] Calculate time delta since last accrual: `dt = (- stacks-block-time last-accrued)`
+- [x] Calculate interest:
+  - [x] `interest-numerator = (* borrowed-stx INTEREST_RATE_PERCENTAGE dt)`
+  - [x] `interest-denominator = (* ONE_YEAR_IN_SECS u100)`
+  - [x] `interest = (/ interest-numerator interest-denominator)`
+- [x] Calculate total debt: `accrued-interest = (+ borrowed-stx interest)`
+- [x] Return `(ok accrued-interest)`
 
 **Acceptance Criteria:**
 - Returns correct debt including interest
