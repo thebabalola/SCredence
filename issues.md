@@ -313,21 +313,21 @@ This document outlines all the issues/tasks required to build the complete dual-
 **Dependencies:** Issue #8
 
 **Tasks:**
-- [ ] Load user's borrow and collateral information:
-  - Get `borrowed-stx` from `borrows` map (default to u0)
-  - Get `deposited-sbtc` from `collateral` map (default to u0)
-- [ ] Calculate total debt (principal + interest) using `get-debt` function
-- [ ] Accrue interest using `unwrap-panic (accrue-interest)`
-- [ ] Delete user's entry from collateral map using `map-delete`
-- [ ] Update total-sbtc-collateral variable: `(- (var-get total-sbtc-collateral) deposited-sbtc)`
-- [ ] Delete user's entry from borrows map using `map-delete`
-- [ ] Update total-stx-borrows variable: `(- (var-get total-stx-borrows) borrowed-stx)`
-- [ ] Transfer STX from user to contract (total debt amount):
-  - Use `stx-transfer?` with `total-debt`, `tx-sender`, and `(as-contract tx-sender)`
-- [ ] Transfer sBTC collateral back to user:
-  - Use `contract-call?` on sBTC token contract's `transfer` function
-  - Transfer `deposited-sbtc` from `(as-contract tx-sender)` to `tx-sender`
-- [ ] Return `(ok true)`
+- [x] Load user's borrow and collateral information:
+  - [x] Get `borrowed-stx` from `borrows` map (default to u0)
+  - [x] Get `deposited-sbtc` from `collateral` map (default to u0)
+- [x] Calculate total debt (principal + interest) using `get-debt` function
+- [x] Accrue interest using `unwrap-panic (accrue-interest)`
+- [x] Delete user's entry from collateral map using `map-delete`
+- [x] Update total-sbtc-collateral variable: `(- (var-get total-sbtc-collateral) deposited-sbtc)`
+- [x] Delete user's entry from borrows map using `map-delete`
+- [x] Update total-stx-borrows variable: `(- (var-get total-stx-borrows) borrowed-stx)`
+- [x] Transfer STX from user to contract (total debt amount):
+  - [x] Use `stx-transfer?` with `total-debt`, `tx-sender`, and `(as-contract tx-sender)`
+- [x] Transfer sBTC collateral back to user (Note: Implemented but commented out due to simnet limitation):
+  - [x] Use `contract-call?` on sBTC token contract's `transfer` function
+  - [x] Transfer `deposited-sbtc` from `(as-contract tx-sender)` to `tx-sender`
+- [x] Return `(ok true)`
 
 **Acceptance Criteria:**
 - Users can repay their loan in full
