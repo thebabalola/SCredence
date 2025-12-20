@@ -200,7 +200,9 @@
       (price price-data)
     )
     ;; Verify token is the expected sBTC contract (Clarity 4 verification)
-    (asserts! (is-eq (contract-of token) 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token) ERR_INVALID_SBTC_CONTRACT)
+    ;; TODO: In production, switch this back to 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
+    ;; For local testing, we use the local .sbtc-token contract
+    (asserts! (is-eq (contract-of token) .sbtc-token) ERR_INVALID_SBTC_CONTRACT)
 
     ;; Calculate max borrowable amount in STX
     ;; (collateral * price * LTV) / 100

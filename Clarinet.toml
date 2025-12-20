@@ -21,6 +21,16 @@ path = 'contracts/mock-oracle.clar'
 clarity_version = 4
 epoch = 'latest'
 
+[contracts.sbtc-token]
+path = 'contracts/sbtc-token.clar'
+clarity_version = 4
+epoch = 'latest'
+
+[contracts.traits]
+path = 'contracts/traits.clar'
+clarity_version = 4
+epoch = 'latest'
+
 [repl.analysis]
 passes = ['check_checker']
 
