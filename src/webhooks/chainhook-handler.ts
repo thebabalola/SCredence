@@ -1,5 +1,11 @@
 import { ChainhookEvent } from '@hirosystems/chainhooks-client';
 import express from 'express';
+import {
+  handleDeposit,
+  handleBorrow,
+  handleRepay,
+  handleLiquidation
+} from '../services/lending-events';
 
 const router = express.Router();
 
@@ -43,20 +49,16 @@ async function processLendingEvent(event: ChainhookEvent) {
           
           switch (functionName) {
             case 'deposit-stx':
-              console.log('💰 Deposit detected');
-              // TODO: Implement handleDeposit
+              await handleDeposit(tx);
               break;
             case 'borrow-stx':
-              console.log('📤 Borrow detected');
-              // TODO: Implement handleBorrow
+              await handleBorrow(tx);
               break;
             case 'repay':
-              console.log('💵 Repayment detected');
-              // TODO: Implement handleRepay
+              await handleRepay(tx);
               break;
             case 'liquidate':
-              console.log('⚠️ Liquidation detected');
-              // TODO: Implement handleLiquidation
+              await handleLiquidation(tx);
               break;
           }
         }
