@@ -1,34 +1,19 @@
 [project]
-name = 'stacks-lend'
-description = 'Dual asset lending protocol on Stacks'
+name = 'scredence'
+description = 'Bitcoin-anchored verification for internships, NYSC & professional service'
 authors = []
 telemetry = true
 cache_dir = './.cache'
-requirements = [
-  'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token',
-  'SM1793C4R5PZ4NS4VQ4WMP7SKKYVH8JZEWSZ9HCCR.token-stx-v-1-2',
-  'SM1793C4R5PZ4NS4VQ4WMP7SKKYVH8JZEWSZ9HCCR.xyk-swap-helper-v-1-3',
-  'SM1793C4R5PZ4NS4VQ4WMP7SKKYVH8JZEWSZ9HCCR.xyk-pool-sbtc-stx-v-1-1',
-]
+requirements = []
 
-[contracts.stackslend-v1]
-path = 'contracts/lending-pool.clar'
-clarity_version = 4
-epoch = 'latest'
-
-[contracts.mock-oracle-v1]
-path = 'contracts/mock-oracle.clar'
-clarity_version = 4
-epoch = 'latest'
-
-[contracts.sbtc-token]
-path = 'contracts/sbtc-token.clar'
-clarity_version = 4
+[contracts.service-verification]
+path = 'contracts/service-verification.clar'
+clarity_version = 3
 epoch = 'latest'
 
 [contracts.traits]
 path = 'contracts/traits.clar'
-clarity_version = 4
+clarity_version = 3
 epoch = 'latest'
 
 [repl.analysis]

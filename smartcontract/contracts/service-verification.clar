@@ -1,0 +1,290 @@
+;; ============================================
+;; SCredence - Service Verification Contract
+;; Bitcoin-Anchored Verification for Professional Service
+;; ============================================
+
+;; ============================================
+;; Error Constants
+;; ============================================
+(define-constant ERR_UNAUTHORIZED (err u100))
+(define-constant ERR_ISSUER_NOT_AUTHORIZED (err u101))
+(define-constant ERR_ISSUER_ALREADY_EXISTS (err u102))
+(define-constant ERR_PROOF_ALREADY_EXISTS (err u103))
+(define-constant ERR_PROOF_NOT_FOUND (err u104))
+(define-constant ERR_INVALID_SERVICE_TYPE (err u105))
+(define-constant ERR_INVALID_DURATION (err u106))
+
+;; ============================================
+;; Service Type Constants
+;; ============================================
+(define-constant SERVICE_TYPE_INTERNSHIP u1)
+(define-constant SERVICE_TYPE_NYSC u2)
+(define-constant SERVICE_TYPE_VOLUNTEERING u3)
+(define-constant SERVICE_TYPE_APPRENTICESHIP u4)
+(define-constant SERVICE_TYPE_TRAINING u5)
+(define-constant SERVICE_TYPE_CDS u6)
+
+;; ============================================
+;; Data Variables
+;; ============================================
+(define-data-var contract-owner principal tx-sender)
+(define-data-var total-issuers uint u0)
+(define-data-var total-proofs uint u0)
+
+;; ============================================
+;; Data Maps
+;; ============================================
+
+;; Authorized issuers (organizations, employers, institutions)
+(define-map authorized-issuers
+  principal
+  {
+    name: (string-ascii 100),
+    organization-type: (string-ascii 50),
+    authorized-at: uint,
+    authorized-by: principal,
+    is-active: bool
+  }
+)
+
+;; Service proofs
+(define-map service-proofs
+  { proof-id: uint }
+  {
+    participant: principal,
+    issuer: principal,
+    service-type: uint,
+    credential-hash: (buff 32),
+    start-date: uint,
+    end-date: uint,
+    duration-days: uint,
+    issued-at: uint,
+    metadata-uri: (optional (string-ascii 256))
+  }
+)
+
+;; Participant's proof index (for easy lookup)
+(define-map participant-proofs
+  { participant: principal, index: uint }
+  uint  ;; proof-id
+)
+
+;; Track number of proofs per participant
+(define-map participant-proof-count
+  principal
+  uint
+)
+
+;; ============================================
+;; Read-Only Functions
+;; ============================================
+
+;; Get contract owner
+(define-read-only (get-contract-owner)
+  (ok (var-get contract-owner))
+)
+
+;; Check if an address is an authorized issuer
+(define-read-only (is-authorized-issuer (issuer principal))
+  (match (map-get? authorized-issuers issuer)
+    issuer-data (get is-active issuer-data)
+    false
+  )
+)
+
+;; Get issuer details
+(define-read-only (get-issuer-details (issuer principal))
+  (ok (map-get? authorized-issuers issuer))
+)
+
+;; Get service proof by ID
+(define-read-only (get-service-proof (proof-id uint))
+  (ok (map-get? service-proofs { proof-id: proof-id }))
+)
+
+;; Get participant's proof count
+(define-read-only (get-participant-proof-count (participant principal))
+  (ok (default-to u0 (map-get? participant-proof-count participant)))
+)
+
+;; Get participant's proof by index
+(define-read-only (get-participant-proof-by-index (participant principal) (index uint))
+  (match (map-get? participant-proofs { participant: participant, index: index })
+    proof-id (get-service-proof proof-id)
+    (ok none)
+  )
+)
+
+;; Get total statistics
+(define-read-only (get-statistics)
+  (ok {
+    total-issuers: (var-get total-issuers),
+    total-proofs: (var-get total-proofs)
+  })
+)
+
+;; Verify a service proof
+(define-read-only (verify-proof (proof-id uint) (expected-hash (buff 32)))
+  (match (map-get? service-proofs { proof-id: proof-id })
+    proof-data
+      (ok {
+        is-valid: (is-eq (get credential-hash proof-data) expected-hash),
+        participant: (get participant proof-data),
+        issuer: (get issuer proof-data),
+        service-type: (get service-type proof-data),
+        issued-at: (get issued-at proof-data)
+      })
+    ERR_PROOF_NOT_FOUND
+  )
+)
+
+;; ============================================
+;; Public Functions - Admin
+;; ============================================
+
+;; Register a new authorized issuer (only contract owner)
+(define-public (register-issuer 
+  (issuer principal)
+  (name (string-ascii 100))
+  (organization-type (string-ascii 50))
+)
+  (begin
+    ;; Only contract owner can register issuers
+    (asserts! (is-eq tx-sender (var-get contract-owner)) ERR_UNAUTHORIZED)
+    
+    ;; Check if issuer already exists
+    (asserts! (is-none (map-get? authorized-issuers issuer)) ERR_ISSUER_ALREADY_EXISTS)
+    
+    ;; Register the issuer
+    (map-set authorized-issuers issuer {
+      name: name,
+      organization-type: organization-type,
+      authorized-at: stacks-block-height,
+      authorized-by: tx-sender,
+      is-active: true
+    })
+    
+    ;; Increment total issuers
+    (var-set total-issuers (+ (var-get total-issuers) u1))
+    
+    (ok true)
+  )
+)
+
+;; Revoke issuer authorization (only contract owner)
+(define-public (revoke-issuer (issuer principal))
+  (begin
+    ;; Only contract owner can revoke issuers
+    (asserts! (is-eq tx-sender (var-get contract-owner)) ERR_UNAUTHORIZED)
+    
+    ;; Get existing issuer data
+    (match (map-get? authorized-issuers issuer)
+      issuer-data
+        (begin
+          ;; Update issuer status to inactive
+          (map-set authorized-issuers issuer
+            (merge issuer-data { is-active: false })
+          )
+          (ok true)
+        )
+      ERR_ISSUER_NOT_AUTHORIZED
+    )
+  )
+)
+
+;; ============================================
+;; Public Functions - Issuer
+;; ============================================
+
+;; Issue a service proof (only authorized issuers)
+(define-public (issue-service-proof
+  (participant principal)
+  (service-type uint)
+  (credential-hash (buff 32))
+  (start-date uint)
+  (end-date uint)
+  (duration-days uint)
+  (metadata-uri (optional (string-ascii 256)))
+)
+  (let
+    (
+      (proof-id (+ (var-get total-proofs) u1))
+      (participant-count (default-to u0 (map-get? participant-proof-count participant)))
+    )
+    ;; Only authorized issuers can issue proofs
+    (asserts! (is-authorized-issuer tx-sender) ERR_ISSUER_NOT_AUTHORIZED)
+    
+    ;; Validate service type
+    (asserts! 
+      (or
+        (is-eq service-type SERVICE_TYPE_INTERNSHIP)
+        (is-eq service-type SERVICE_TYPE_NYSC)
+        (is-eq service-type SERVICE_TYPE_VOLUNTEERING)
+        (is-eq service-type SERVICE_TYPE_APPRENTICESHIP)
+        (is-eq service-type SERVICE_TYPE_TRAINING)
+        (is-eq service-type SERVICE_TYPE_CDS)
+      )
+      ERR_INVALID_SERVICE_TYPE
+    )
+    
+    ;; Validate duration
+    (asserts! (> duration-days u0) ERR_INVALID_DURATION)
+    (asserts! (> end-date start-date) ERR_INVALID_DURATION)
+    
+    ;; Create the service proof
+    (map-set service-proofs { proof-id: proof-id } {
+      participant: participant,
+      issuer: tx-sender,
+      service-type: service-type,
+      credential-hash: credential-hash,
+      start-date: start-date,
+      end-date: end-date,
+      duration-days: duration-days,
+      issued-at: stacks-block-height,
+      metadata-uri: metadata-uri
+    })
+    
+    ;; Add to participant's proof index
+    (map-set participant-proofs 
+      { participant: participant, index: participant-count }
+      proof-id
+    )
+    
+    ;; Update participant proof count
+    (map-set participant-proof-count participant (+ participant-count u1))
+    
+    ;; Increment total proofs
+    (var-set total-proofs proof-id)
+    
+    ;; Print event for indexing
+    (print {
+      event: "service-proof-issued",
+      proof-id: proof-id,
+      participant: participant,
+      issuer: tx-sender,
+      service-type: service-type,
+      issued-at: stacks-block-height
+    })
+    
+    (ok proof-id)
+  )
+)
+
+;; ============================================
+;; Public Functions - Participant
+;; ============================================
+
+;; Get all proofs for a participant (returns list of proof IDs)
+(define-read-only (get-participant-proofs (participant principal))
+  (ok {
+    count: (default-to u0 (map-get? participant-proof-count participant)),
+    participant: participant
+  })
+)
+
+;; ============================================
+;; Initialization
+;; ============================================
+
+;; Contract initialization
+;; The deployer becomes the contract owner and can register issuers

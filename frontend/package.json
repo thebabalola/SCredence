@@ -1,6 +1,7 @@
 {
-  "name": "frontend",
+  "name": "scredence-frontend",
   "version": "0.1.0",
+  "description": "SCredence service verification frontend - Web interface for Bitcoin-anchored professional credentials",
   "private": true,
   "scripts": {
     "dev": "next dev",

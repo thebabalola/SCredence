@@ -1,32 +1,73 @@
-# StacksLend
+# SCredence
 
-A decentralized dual-asset lending protocol built on the Stacks blockchain. StacksLend enables users to deposit STX to earn yield, borrow STX against sBTC collateral, and participate in liquidations to maintain protocol health.
+Bitcoin-Anchored Verification for Internships, NYSC & Professional Service
+
+A decentralized verification system built on the Stacks blockchain for recording and validating internships, national service (NYSC), volunteering, and early-career work on-chain.
+
+The project leverages Bitcoin's immutability via Stacks to create long-lasting, tamper-resistant records of service and contribution—credentials that young people can carry for life.
+
+**This is not a speculative DeFi product.**  
+It is an identity and proof primitive designed for trust, credibility, and long-term value.
 
 ## 🌟 Features
 
-### For Lenders
-- **Deposit STX** - Supply STX tokens to the lending pool
-- **Earn Yield** - Receive 10% annual interest from borrower payments
-- **Flexible Withdrawals** - Withdraw deposited STX plus earned interest anytime
+### For Service Providers (Issuers)
+- **Register as Verifier** - Organizations, employers, and institutions can register as authorized issuers
+- **Issue Service Proofs** - Create immutable records of completed internships, NYSC, volunteering, etc.
+- **Revoke Authorization** - Ability to revoke issuer status if needed
 
-### For Borrowers
-- **Borrow STX** - Use sBTC as collateral to borrow STX tokens
-- **70% LTV Ratio** - Borrow up to 70% of your collateral value
-- **Flexible Repayment** - Repay loans and reclaim collateral at any time
+### For Service Participants
+- **Permanent Records** - Own your service credentials forever, anchored to Bitcoin
+- **Portable Credentials** - Use proofs across employers, platforms, and borders
+- **Instant Verification** - Anyone can verify authenticity on-chain
 
-### For Liquidators
-- **Monitor Positions** - Track undercollateralized loans in real-time
-- **Liquidate Positions** - Trigger liquidations when health factor drops below 100%
-- **Earn Bounties** - Receive 10% of liquidated collateral as reward
+### For Verifiers (Employers, Institutions)
+- **Quick Verification** - Instantly verify service records on-chain
+- **Fraud Prevention** - Cryptographic proofs prevent forgery and manipulation
+- **Trustless Validation** - No need to contact issuing institutions
+
+## 📋 Problem
+
+Across Nigeria and many emerging markets:
+
+- Internship and NYSC records are **paper-based or fragmented**
+- Verification is **slow, manual, and easy to dispute**
+- Young people **struggle to prove experience** to employers
+- Certificates can be **lost, forged, or unverifiable**
+
+There is no neutral, permanent, and verifiable system for proving service and work history.
+
+## ✅ Solution
+
+SCredence records service credentials on-chain as verifiable proofs, anchored to Bitcoin via Stacks.
+
+Each verified record:
+
+- ✓ Is **immutable**
+- ✓ Is **independently verifiable**
+- ✓ **Belongs to the individual**, not an institution
+- ✓ Can be **reused across employers, platforms, and borders**
+
+## 📝 What Can Be Recorded
+
+The system supports proofs for:
+
+- ✅ Internships
+- ✅ NYSC service & CDS participation
+- ✅ Volunteering
+- ✅ Apprenticeships
+- ✅ Training programs
+- ✅ Certificates & skill completion (future expansion)
+- ✅ Professional licenses (future expansion)
 
 ## 📁 Project Structure
 
 ```
-stackslend/
+SCredence/
 ├── smartcontract/          # Clarity smart contracts
 │   ├── contracts/          # Contract source files
-│   │   ├── lending-pool.clar
-│   │   └── mock-oracle.clar
+│   │   ├── service-verification.clar
+│   │   └── traits.clar
 │   ├── tests/              # Contract test suite
 │   └── README.md           # Smart contract documentation
 │
@@ -37,7 +78,7 @@ stackslend/
 │   ├── lib/                # Contract interaction utilities
 │   └── README.md           # Frontend documentation
 │
-└── backend/                # Event monitoring & API service
+└── backend/                # Event monitoring & API service (future)
     ├── src/                # Backend source code
     │   ├── webhooks/       # Chainhook event handlers
     │   ├── services/       # Business logic
@@ -45,13 +86,35 @@ stackslend/
     └── README.md           # Backend documentation
 ```
 
+## 🔄 How It Works (High Level)
+
+1. **Issuers Register** - Organizations, employers, and institutions register as authorized verifiers
+2. **Service Completed** - Participant completes internship, NYSC, volunteering, etc.
+3. **Record Issued** - Issuer creates an on-chain proof containing:
+   - Hash of the credential
+   - Issuer address
+   - Service type and duration
+   - Timestamp
+4. **Participant Owns Proof** - The service record belongs to the participant permanently
+5. **Anyone Can Verify** - Employers, platforms, or anyone can verify authenticity on-chain
+
+**No sensitive documents are stored on-chain** — only cryptographic proofs.
+
+## 🪙 Why Bitcoin & Stacks
+
+This system is intentionally built for Bitcoin L2 (Stacks) because:
+
+- ✓ **Proofs of service should be permanent** - Bitcoin provides unmatched trust and finality
+- ✓ **Smart contracts without compromise** - Stacks enables programmability without compromising Bitcoin's security
+- ✓ **Credentials should outlive platforms** - Records should exist beyond companies and governments
+- ✓ **Identity belongs on Bitcoin** - Proof and credentials are foundational infrastructure
+
 ## 🚀 Quick Start
 
 ### Prerequisites
 - **Node.js** 18+ and npm
 - **Clarinet** - [Installation Guide](https://docs.hiro.so/clarinet/getting-started)
 - **Stacks Wallet** - Hiro/Leather or Xverse wallet
-- **Docker** (optional, for backend Chainhook service)
 
 ### Smart Contracts
 
@@ -92,23 +155,6 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-### Backend
-
-```bash
-# Navigate to backend directory
-cd backend
-
-# Install dependencies
-npm install
-
-# Configure environment variables
-cp .env.example .env
-# Edit .env with your configuration
-
-# Run development server
-npm run dev
-```
-
 ## 🛠️ Tech Stack
 
 ### Smart Contracts
@@ -125,98 +171,74 @@ npm run dev
 - **@stacks/connect** - Wallet connection (Hiro, Xverse)
 - **@stacks/transactions** - Transaction handling
 
-### Backend
-- **Node.js** - JavaScript runtime
-- **Express** - Web framework
-- **TypeScript** - Type safety
-- **@hirosystems/chainhooks-client** - Real-time blockchain events
-- **PostgreSQL/MongoDB** - Data persistence
+## 🎯 Core Smart Contract Features
 
-## 📊 Protocol Parameters
+- ✅ Service proof issuance
+- ✅ Issuer authorization & revocation
+- ✅ Immutable record storage (hash-based)
+- ✅ Public verification functions
+- ✅ Event emission for indexing & analytics
 
-- **LTV Percentage**: 70% - Maximum loan-to-value ratio
-- **Interest Rate**: 10% annually
-- **Liquidation Threshold**: 100% - When liquidation can be triggered
-- **Liquidator Bounty**: 10% of collateral value
+## 💼 Use Cases
 
-## 🔒 Security Features
+- Employers verifying internship experience
+- NYSC members proving service history
+- NGOs validating volunteer participation
+- Youth building verifiable work profiles
+- Institutions issuing digital credentials
+- Platforms integrating trusted proof-of-service
 
-### Smart Contract Security
-- ✅ **Clarity 4 Features** - Latest security enhancements
-- ✅ **Contract Verification** - `contract-hash?` for external contract validation
-- ✅ **Asset Protection** - `restrict-assets?` for post-condition enforcement
-- ✅ **Time-based Logic** - `stacks-block-time` for accurate interest calculations
+## 🌍 Impact
 
-### Protocol Security
-- ✅ **Collateralization** - Over-collateralized loans (70% LTV)
-- ✅ **Liquidation Mechanism** - Automated liquidation via Bitflow DEX
-- ✅ **Interest Accrual** - Continuous interest tracking with yield index
-- ✅ **Oracle Integration** - Price feeds for accurate collateral valuation
+- **Empowers youth** with verifiable credentials
+- **Reduces fraud** and misrepresentation
+- **Improves hiring trust** between employers and candidates
+- **Supports inclusion** - financial and professional
+- **Creates infrastructure** for long-term digital identity
 
-## 🌐 Deployed Contracts
+## 🗺️ Roadmap
 
-### Mainnet
-- **Lending Pool**: `SPZYY7560YPR8BY63XNTDX36HBY1G8K0TST365B2.stackslend-v1`
-- **Mock Oracle**: `SPZYY7560YPR8BY63XNTDX36HBY1G8K0TST365B2.mock-oracle-v1`
+### Phase 1 (Current)
+- ✅ Core service proof contract
+- ✅ Issuer registration
+- ✅ Verification functions
+- 🔄 Frontend verification portal
 
-### Testnet
-Deploy your own instance following the [smart contract deployment guide](./smartcontract/README.md#deployment).
+### Phase 2
+- 📋 Certificate & training proofs
+- 📋 NFT-based credentials (optional)
+- 📋 Enhanced search and filtering
+- 📋 Multi-signature issuer support
+
+### Phase 3
+- 📋 Cross-platform integrations
+- 📋 Anchoring proofs directly to Bitcoin blocks
+- 📋 Expansion beyond Nigeria (pan-African, global)
+- 📋 API for third-party integrations
 
 ## 📖 Documentation
 
 - **[Smart Contract Documentation](./smartcontract/README.md)** - Contract architecture and deployment
 - **[Frontend Documentation](./frontend/README.md)** - UI implementation and wallet integration
-- **[Backend Documentation](./backend/README.md)** - Event monitoring and API setup
-- **[Clarity 4 Implementation](./smartcontract/clarity-smartcontract-guide.md)** - Clarity 4 features guide
-- **[Issues & Roadmap](./smartcontract/issues.md)** - Development tasks and feature requests
+- **[Clarity 4 Implementation](./smartcontract/clarity-smartcontract-guide.md)** - Clarity 4 features guide (if applicable)
 
-## 🔑 Key Concepts
+## 🔑 Why This Matters
 
-### Interest Accrual
-Interest accrues continuously based on:
-- Total borrowed STX in the pool
-- Time elapsed since last accrual
-- Annual interest rate (10%)
+SCredence is not about hype.  
+It is about **trust, credibility, and opportunity**—anchored to the most secure blockchain in the world.
 
-### Yield Index
-Each lender has a `yield-index` that tracks their deposit time:
-- Ensures fair interest distribution
-- New deposits don't earn retroactive interest
-- Lenders only earn on funds they've supplied
-
-### Liquidation Process
-When a position becomes undercollateralized (health factor < 100%):
-1. Liquidator triggers liquidation transaction
-2. 10% of collateral transferred to liquidator as bounty
-3. Remaining 90% sold on Bitflow DEX for STX
-4. STX proceeds distributed to lenders as yield
-5. Borrower's debt is cleared
-
-## 🔗 Integration Points
-
-- **sBTC Token** - Collateral asset for borrowing
-- **Bitflow DEX** - Automated liquidation swaps (sBTC → STX)
-- **Mock Oracle** - Price feeds (replace with Pyth/Redstone in production)
-- **Chainhook** - Real-time blockchain event monitoring
+Young people deserve permanent, portable, and verifiable credentials that cannot be lost, forged, or disputed.
 
 ## 🤝 Contributing
 
 We welcome contributions! Here's how to get started:
 
 1. **Pick a Component** - Choose smart contracts, frontend, or backend
-2. **Check Issues** - Browse [`smartcontract/issues.md`](./smartcontract/issues.md) for tasks
+2. **Check Issues** - Browse issues for available tasks
 3. **Create a Branch** - Use format: `feature/<component>-<description>`
 4. **Implement Changes** - Follow the component's coding standards
 5. **Write Tests** - Ensure all tests pass
 6. **Submit PR** - Include clear description and testing notes
-
-### Development Workflow
-1. Fork the repository
-2. Create your feature branch
-3. Make your changes
-4. Run tests for affected components
-5. Update documentation as needed
-6. Submit a pull request
 
 ## 🧪 Testing
 
@@ -233,13 +255,6 @@ npm run build  # Verify build succeeds
 npm run lint   # Check code quality
 ```
 
-### Backend
-```bash
-cd backend
-npm test       # Run test suite
-npm run lint   # Check code quality
-```
-
 ## 📦 Deployment
 
 ### Smart Contracts
@@ -252,33 +267,25 @@ npm run lint   # Check code quality
 - **Netlify**: Similar automatic deployment from GitHub
 - Set environment variables in deployment platform
 
-### Backend
-- **Railway/Render**: Deploy with Docker or Node.js buildpack
-- **AWS/GCP**: Deploy as containerized service
-- Configure Chainhook service to point to backend webhook URL
-
 ## 📚 Resources
 
 - [Stacks Documentation](https://docs.stacks.co)
 - [Clarity Documentation](https://docs.hiro.so/clarity)
 - [Clarinet Documentation](https://docs.hiro.so/clarinet)
 - [@stacks/connect Documentation](https://docs.hiro.so/stacks.js/connect)
-- [Chainhook Documentation](https://docs.hiro.so/chainhook)
-- [Bitflow DEX](https://bitflow.finance)
 
 ## ⚠️ Disclaimer
 
-**This protocol has not undergone a professional security audit.** Use at your own risk. Do not deposit funds you cannot afford to lose.
+**This protocol is under active development.** Use at your own risk. We recommend thorough testing before production use.
 
 ## 📜 License
 
-[Specify your license here - e.g., MIT, Apache 2.0, etc.]
+MIT
 
 ## 🔗 Links
 
-- **GitHub Repository**: https://github.com/StacksLend/stackslend
-- **Frontend**: (Now merged into this monorepo)
-- **Backend**: (Now merged into this monorepo)
+- **GitHub Repository**: [SCredence on GitHub]
+- **Documentation**: See component-specific README files
 
 ## 📞 Support
 
@@ -289,4 +296,4 @@ For questions and support:
 
 ---
 
-**Built with ❤️ on Stacks blockchain**
+**Built with ❤️ on Stacks blockchain - Anchored to Bitcoin**

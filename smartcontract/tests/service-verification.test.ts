@@ -1,0 +1,647 @@
+import { describe, expect, it, beforeEach } from "vitest";
+import { Cl } from "@stacks/transactions";
+
+/**
+ * Service Verification Contract Tests
+ * 
+ * Tests for the SCredence service verification system
+ */
+
+const accounts = simnet.getAccounts();
+const deployer = accounts.get("deployer")!;
+const issuer1 = accounts.get("wallet_1")!;
+const issuer2 = accounts.get("wallet_2")!;
+const participant1 = accounts.get("wallet_3")!;
+const participant2 = accounts.get("wallet_4")!;
+
+const CONTRACT_NAME = "service-verification";
+
+// Service type constants
+const SERVICE_TYPE_INTERNSHIP = 1;
+const SERVICE_TYPE_NYSC = 2;
+const SERVICE_TYPE_VOLUNTEERING = 3;
+const SERVICE_TYPE_APPRENTICESHIP = 4;
+const SERVICE_TYPE_TRAINING = 5;
+const SERVICE_TYPE_CDS = 6;
+
+// Test credential hash (32 bytes)
+const TEST_CREDENTIAL_HASH = new Uint8Array(32).fill(1);
+
+describe("Service Verification Contract Tests", () => {
+  
+  describe("Initialization", () => {
+    it("should set contract owner to deployer", () => {
+      const owner = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "get-contract-owner",
+        [],
+        deployer
+      );
+      expect(owner.result).toBeOk(Cl.principal(deployer));
+    });
+
+    it("should initialize with zero issuers and proofs", () => {
+      const stats = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "get-statistics",
+        [],
+        deployer
+      );
+      
+      expect(stats.result).toBeOk(
+        Cl.tuple({
+          "total-issuers": Cl.uint(0),
+          "total-proofs": Cl.uint(0)
+        })
+      );
+    });
+  });
+
+  describe("Issuer Registration", () => {
+    it("should allow contract owner to register issuer", () => {
+      const result = simnet.callPublicFn(
+        CONTRACT_NAME,
+        "register-issuer",
+        [
+          Cl.principal(issuer1),
+          Cl.stringAscii("Andela Nigeria"),
+          Cl.stringAscii("Tech Training")
+        ],
+        deployer
+      );
+
+      expect(result.result).toBeOk(Cl.bool(true));
+    });
+
+    it("should fail if non-owner tries to register issuer", () => {
+      const result = simnet.callPublicFn(
+        CONTRACT_NAME,
+        "register-issuer",
+        [
+          Cl.principal(issuer1),
+          Cl.stringAscii("Andela Nigeria"),
+          Cl.stringAscii("Tech Training")
+        ],
+        issuer2  // Not the owner
+      );
+
+      expect(result.result).toBeErr(Cl.uint(100)); // ERR_UNAUTHORIZED
+    });
+
+    it("should fail if issuer already exists", () => {
+      // First registration
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "register-issuer",
+        [
+          Cl.principal(issuer1),
+          Cl.stringAscii("Andela Nigeria"),
+          Cl.stringAscii("Tech Training")
+        ],
+        deployer
+      );
+
+      // Try to register same issuer again
+      const result = simnet.callPublicFn(
+        CONTRACT_NAME,
+        "register-issuer",
+        [
+          Cl.principal(issuer1),
+          Cl.stringAscii("Another Org"),
+          Cl.stringAscii("Different Type")
+        ],
+        deployer
+      );
+
+      expect(result.result).toBeErr(Cl.uint(102)); // ERR_ISSUER_ALREADY_EXISTS
+    });
+
+    it("should increment total issuers count", () => {
+      // Register first issuer
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "register-issuer",
+        [
+          Cl.principal(issuer1),
+          Cl.stringAscii("Andela Nigeria"),
+          Cl.stringAscii("Tech Training")
+        ],
+        deployer
+      );
+
+      // Register second issuer
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "register-issuer",
+        [
+          Cl.principal(issuer2),
+          Cl.stringAscii("Tech4Dev"),
+          Cl.stringAscii("NGO")
+        ],
+        deployer
+      );
+
+      const stats = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "get-statistics",
+        [],
+        deployer
+      );
+
+      expect(stats.result).toBeOk(
+        Cl.tuple({
+          "total-issuers": Cl.uint(2),
+          "total-proofs": Cl.uint(0)
+        })
+      );
+    });
+  });
+
+  describe("Issuer Authorization Check", () => {
+    beforeEach(() => {
+      // Register issuer1
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "register-issuer",
+        [
+          Cl.principal(issuer1),
+          Cl.stringAscii("Andela Nigeria"),
+          Cl.stringAscii("Tech Training")
+        ],
+        deployer
+      );
+    });
+
+    it("should return true for authorized issuer", () => {
+      const result = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "is-authorized-issuer",
+        [Cl.principal(issuer1)],
+        deployer
+      );
+
+      expect(result.result).toBeBool(true);
+    });
+
+    it("should return false for non-authorized address", () => {
+      const result = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "is-authorized-issuer",
+        [Cl.principal(issuer2)],
+        deployer
+      );
+
+      expect(result.result).toBeBool(false);
+    });
+  });
+
+  describe("Issuer Revocation", () => {
+    beforeEach(() => {
+      // Register issuer1
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "register-issuer",
+        [
+          Cl.principal(issuer1),
+          Cl.stringAscii("Andela Nigeria"),
+          Cl.stringAscii("Tech Training")
+        ],
+        deployer
+      );
+    });
+
+    it("should allow owner to revoke issuer", () => {
+      const result = simnet.callPublicFn(
+        CONTRACT_NAME,
+        "revoke-issuer",
+        [Cl.principal(issuer1)],
+        deployer
+      );
+
+      expect(result.result).toBeOk(Cl.bool(true));
+    });
+
+    it("should set issuer as inactive after revocation", () => {
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "revoke-issuer",
+        [Cl.principal(issuer1)],
+        deployer
+      );
+
+      const isAuthorized = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "is-authorized-issuer",
+        [Cl.principal(issuer1)],
+        deployer
+      );
+
+      expect(isAuthorized.result).toBeBool(false);
+    });
+
+    it("should fail if non-owner tries to revoke issuer", () => {
+      const result = simnet.callPublicFn(
+        CONTRACT_NAME,
+        "revoke-issuer",
+        [Cl.principal(issuer1)],
+        issuer2
+      );
+
+      expect(result.result).toBeErr(Cl.uint(100)); // ERR_UNAUTHORIZED
+    });
+  });
+
+  describe("Service Proof Issuance", () => {
+    beforeEach(() => {
+      // Register issuer1
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "register-issuer",
+        [
+          Cl.principal(issuer1),
+          Cl.stringAscii("Andela Nigeria"),
+          Cl.stringAscii("Tech Training")
+        ],
+        deployer
+      );
+    });
+
+    it("should allow authorized issuer to issue proof", () => {
+      const result = simnet.callPublicFn(
+        CONTRACT_NAME,
+        "issue-service-proof",
+        [
+          Cl.principal(participant1),
+          Cl.uint(SERVICE_TYPE_INTERNSHIP),
+          Cl.buffer(TEST_CREDENTIAL_HASH),
+          Cl.uint(1640995200),  // start date
+          Cl.uint(1656547200),  // end date
+          Cl.uint(180),         // duration days
+          Cl.some(Cl.stringAscii("ipfs://Qm..."))
+        ],
+        issuer1
+      );
+
+      expect(result.result).toBeOk(Cl.uint(1)); // First proof ID
+    });
+
+    it("should fail if non-authorized address tries to issue proof", () => {
+      const result = simnet.callPublicFn(
+        CONTRACT_NAME,
+        "issue-service-proof",
+        [
+          Cl.principal(participant1),
+          Cl.uint(SERVICE_TYPE_INTERNSHIP),
+          Cl.buffer(TEST_CREDENTIAL_HASH),
+          Cl.uint(1640995200),
+          Cl.uint(1656547200),
+          Cl.uint(180),
+          Cl.some(Cl.stringAscii("ipfs://Qm..."))
+        ],
+        issuer2  // Not authorized
+      );
+
+      expect(result.result).toBeErr(Cl.uint(101)); // ERR_ISSUER_NOT_AUTHORIZED
+    });
+
+    it("should fail with invalid service type", () => {
+      const result = simnet.callPublicFn(
+        CONTRACT_NAME,
+        "issue-service-proof",
+        [
+          Cl.principal(participant1),
+          Cl.uint(999),  // Invalid service type
+          Cl.buffer(TEST_CREDENTIAL_HASH),
+          Cl.uint(1640995200),
+          Cl.uint(1656547200),
+          Cl.uint(180),
+          Cl.some(Cl.stringAscii("ipfs://Qm..."))
+        ],
+        issuer1
+      );
+
+      expect(result.result).toBeErr(Cl.uint(105)); // ERR_INVALID_SERVICE_TYPE
+    });
+
+    it("should fail with zero duration", () => {
+      const result = simnet.callPublicFn(
+        CONTRACT_NAME,
+        "issue-service-proof",
+        [
+          Cl.principal(participant1),
+          Cl.uint(SERVICE_TYPE_INTERNSHIP),
+          Cl.buffer(TEST_CREDENTIAL_HASH),
+          Cl.uint(1640995200),
+          Cl.uint(1656547200),
+          Cl.uint(0),  // Zero duration
+          Cl.some(Cl.stringAscii("ipfs://Qm..."))
+        ],
+        issuer1
+      );
+
+      expect(result.result).toBeErr(Cl.uint(106)); // ERR_INVALID_DURATION
+    });
+
+    it("should fail if end date is before start date", () => {
+      const result = simnet.callPublicFn(
+        CONTRACT_NAME,
+        "issue-service-proof",
+        [
+          Cl.principal(participant1),
+          Cl.uint(SERVICE_TYPE_INTERNSHIP),
+          Cl.buffer(TEST_CREDENTIAL_HASH),
+          Cl.uint(1656547200),  // Later date as start
+          Cl.uint(1640995200),  // Earlier date as end
+          Cl.uint(180),
+          Cl.some(Cl.stringAscii("ipfs://Qm..."))
+        ],
+        issuer1
+      );
+
+      expect(result.result).toBeErr(Cl.uint(106)); // ERR_INVALID_DURATION
+    });
+
+    it("should increment total proofs count", () => {
+      // Issue first proof
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "issue-service-proof",
+        [
+          Cl.principal(participant1),
+          Cl.uint(SERVICE_TYPE_INTERNSHIP),
+          Cl.buffer(TEST_CREDENTIAL_HASH),
+          Cl.uint(1640995200),
+          Cl.uint(1656547200),
+          Cl.uint(180),
+          Cl.some(Cl.stringAscii("ipfs://Qm..."))
+        ],
+        issuer1
+      );
+
+      const stats = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "get-statistics",
+        [],
+        deployer
+      );
+
+      expect(stats.result).toBeOk(
+        Cl.tuple({
+          "total-issuers": Cl.uint(1),
+          "total-proofs": Cl.uint(1)
+        })
+      );
+    });
+
+    it("should support all service types", () => {
+      const serviceTypes = [
+        SERVICE_TYPE_INTERNSHIP,
+        SERVICE_TYPE_NYSC,
+        SERVICE_TYPE_VOLUNTEERING,
+        SERVICE_TYPE_APPRENTICESHIP,
+        SERVICE_TYPE_TRAINING,
+        SERVICE_TYPE_CDS
+      ];
+
+      serviceTypes.forEach((serviceType) => {
+        const result = simnet.callPublicFn(
+          CONTRACT_NAME,
+          "issue-service-proof",
+          [
+            Cl.principal(participant1),
+            Cl.uint(serviceType),
+            Cl.buffer(TEST_CREDENTIAL_HASH),
+            Cl.uint(1640995200),
+            Cl.uint(1656547200),
+            Cl.uint(180),
+            Cl.some(Cl.stringAscii("ipfs://Qm..."))
+          ],
+          issuer1
+        );
+
+        expect(result.result).toBeOk(Cl.uint(serviceType));
+      });
+    });
+  });
+
+  describe("Service Proof Retrieval", () => {
+    beforeEach(() => {
+      // Register issuer
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "register-issuer",
+        [
+          Cl.principal(issuer1),
+          Cl.stringAscii("Andela Nigeria"),
+          Cl.stringAscii("Tech Training")
+        ],
+        deployer
+      );
+
+      // Issue a proof
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "issue-service-proof",
+        [
+          Cl.principal(participant1),
+          Cl.uint(SERVICE_TYPE_INTERNSHIP),
+          Cl.buffer(TEST_CREDENTIAL_HASH),
+          Cl.uint(1640995200),
+          Cl.uint(1656547200),
+          Cl.uint(180),
+          Cl.some(Cl.stringAscii("ipfs://Qm123"))
+        ],
+        issuer1
+      );
+    });
+
+    it("should retrieve service proof by ID", () => {
+      const result = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "get-service-proof",
+        [Cl.uint(1)],
+        deployer
+      );
+
+      expect(result.result).toBeOk(
+        Cl.some(
+          Cl.tuple({
+            participant: Cl.principal(participant1),
+            issuer: Cl.principal(issuer1),
+            "service-type": Cl.uint(SERVICE_TYPE_INTERNSHIP),
+            "credential-hash": Cl.buffer(TEST_CREDENTIAL_HASH),
+            "start-date": Cl.uint(1640995200),
+            "end-date": Cl.uint(1656547200),
+            "duration-days": Cl.uint(180),
+            "issued-at": Cl.uint(simnet.blockHeight),
+            "metadata-uri": Cl.some(Cl.stringAscii("ipfs://Qm123"))
+          })
+        )
+      );
+    });
+
+    it("should return none for non-existent proof", () => {
+      const result = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "get-service-proof",
+        [Cl.uint(999)],
+        deployer
+      );
+
+      expect(result.result).toBeOk(Cl.none());
+    });
+  });
+
+  describe("Participant Proof Management", () => {
+    beforeEach(() => {
+      // Register issuer
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "register-issuer",
+        [
+          Cl.principal(issuer1),
+          Cl.stringAscii("Andela Nigeria"),
+          Cl.stringAscii("Tech Training")
+        ],
+        deployer
+      );
+    });
+
+    it("should track participant proof count", () => {
+      // Issue first proof
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "issue-service-proof",
+        [
+          Cl.principal(participant1),
+          Cl.uint(SERVICE_TYPE_INTERNSHIP),
+          Cl.buffer(TEST_CREDENTIAL_HASH),
+          Cl.uint(1640995200),
+          Cl.uint(1656547200),
+          Cl.uint(180),
+          Cl.some(Cl.stringAscii("ipfs://Qm..."))
+        ],
+        issuer1
+      );
+
+      const count = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "get-participant-proof-count",
+        [Cl.principal(participant1)],
+        deployer
+      );
+
+      expect(count.result).toBeOk(Cl.uint(1));
+    });
+
+    it("should retrieve participant proof by index", () => {
+      // Issue proof
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "issue-service-proof",
+        [
+          Cl.principal(participant1),
+          Cl.uint(SERVICE_TYPE_INTERNSHIP),
+          Cl.buffer(TEST_CREDENTIAL_HASH),
+          Cl.uint(1640995200),
+          Cl.uint(1656547200),
+          Cl.uint(180),
+          Cl.some(Cl.stringAscii("ipfs://Qm..."))
+        ],
+        issuer1
+      );
+
+      const proof = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "get-participant-proof-by-index",
+        [Cl.principal(participant1), Cl.uint(0)],
+        deployer
+      );
+
+      expect(proof.result).toBeOk(Cl.some(Cl.any()));
+    });
+  });
+
+  describe("Proof Verification", () => {
+    beforeEach(() => {
+      // Register issuer
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "register-issuer",
+        [
+          Cl.principal(issuer1),
+          Cl.stringAscii("Andela Nigeria"),
+          Cl.stringAscii("Tech Training")
+        ],
+        deployer
+      );
+
+      // Issue proof
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "issue-service-proof",
+        [
+          Cl.principal(participant1),
+          Cl.uint(SERVICE_TYPE_INTERNSHIP),
+          Cl.buffer(TEST_CREDENTIAL_HASH),
+          Cl.uint(1640995200),
+          Cl.uint(1656547200),
+          Cl.uint(180),
+          Cl.some(Cl.stringAscii("ipfs://Qm..."))
+        ],
+        issuer1
+      );
+    });
+
+    it("should verify proof with correct hash", () => {
+      const result = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "verify-proof",
+        [Cl.uint(1), Cl.buffer(TEST_CREDENTIAL_HASH)],
+        deployer
+      );
+
+      expect(result.result).toBeOk(
+        Cl.tuple({
+          "is-valid": Cl.bool(true),
+          participant: Cl.principal(participant1),
+          issuer: Cl.principal(issuer1),
+          "service-type": Cl.uint(SERVICE_TYPE_INTERNSHIP),
+          "issued-at": Cl.uint(simnet.blockHeight)
+        })
+      );
+    });
+
+    it("should fail verification with incorrect hash", () => {
+      const wrongHash = new Uint8Array(32).fill(255);
+      
+      const result = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "verify-proof",
+        [Cl.uint(1), Cl.buffer(wrongHash)],
+        deployer
+      );
+
+      expect(result.result).toBeOk(
+        Cl.tuple({
+          "is-valid": Cl.bool(false),
+          participant: Cl.principal(participant1),
+          issuer: Cl.principal(issuer1),
+          "service-type": Cl.uint(SERVICE_TYPE_INTERNSHIP),
+          "issued-at": Cl.uint(simnet.blockHeight)
+        })
+      );
+    });
+
+    it("should return error for non-existent proof", () => {
+      const result = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "verify-proof",
+        [Cl.uint(999), Cl.buffer(TEST_CREDENTIAL_HASH)],
+        deployer
+      );
+
+      expect(result.result).toBeErr(Cl.uint(104)); // ERR_PROOF_NOT_FOUND
+    });
+  });
+});

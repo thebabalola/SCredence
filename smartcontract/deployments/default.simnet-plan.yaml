@@ -30,29 +30,18 @@ genesis:
     - pox-4
     - signers
     - signers-voting
-    - costs-4
 plan:
   batches:
     - id: 0
       transactions:
         - emulated-contract-publish:
-            contract-name: mock-oracle-v1
+            contract-name: service-verification
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/mock-oracle.clar
-            clarity-version: 4
+            path: contracts/service-verification.clar
+            clarity-version: 3
         - emulated-contract-publish:
             contract-name: traits
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/traits.clar
-            clarity-version: 4
-        - emulated-contract-publish:
-            contract-name: sbtc-token
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/sbtc-token.clar
-            clarity-version: 4
-        - emulated-contract-publish:
-            contract-name: stackslend-v1
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/lending-pool.clar
-            clarity-version: 4
-      epoch: "3.3"
+            clarity-version: 3
+      epoch: "3.2"

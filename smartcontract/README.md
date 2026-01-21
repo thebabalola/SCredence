@@ -1,13 +1,13 @@
-# Smart Contract - Dual Asset Lending Protocol
+# Smart Contract - SCredence Service Verification
 
-This directory contains the Clarity smart contracts for the dual-asset lending protocol built on Stacks.
+This directory contains the Clarity smart contracts for SCredence, a Bitcoin-anchored verification system for professional service built on Stacks.
 
 ## Project Overview
 
-This lending protocol allows users to:
-- **Lenders**: Deposit STX tokens to earn yield from interest payments
-- **Borrowers**: Supply sBTC as collateral to borrow STX tokens
-- **Liquidators**: Liquidate undercollateralized positions to maintain protocol health
+SCredence allows:
+- **Issuers**: Organizations, employers, and institutions to issue verified service records
+- **Participants**: Individuals to own permanent, verifiable credentials on-chain
+- **Verifiers**: Anyone to instantly verify service records without contacting issuers
 
 ## Technology Stack
 
@@ -18,256 +18,374 @@ This lending protocol allows users to:
 - **@stacks/clarinet-sdk**: SDK for interacting with Clarinet simnet
 - **@stacks/transactions**: For building Clarity values in tests (Cl.bool, Cl.uint, etc.)
 
-## Clarity 4 Features
+## Contract Architecture
 
-This project uses **Clarity 4**, which was activated at Bitcoin block 923222 (November 2025). We leverage the following Clarity 4 features:
+### service-verification.clar
 
-### 1. `stacks-block-time` - Direct Block Timestamp Access
-- **Used in**: Time-based interest calculations, loan expiration logic
-- **Benefit**: Simplifies code by replacing helper functions with direct timestamp access
-- **Location**: `lending-pool.clar` - Interest accrual and debt calculations
+The core contract that handles:
 
-### 2. `contract-hash?` - On-Chain Contract Verification
-- **Used in**: Verifying oracle, sBTC token, and Bitflow DEX contracts before interactions
-- **Benefit**: Ensures we're interacting with the correct contract implementations
-- **Location**: 
-  - Oracle verification in `get-sbtc-stx-price`
-  - sBTC verification in `borrow-stx` and `repay`
-  - Bitflow verification in `liquidate`
+1. **Issuer Management**
+   - Register authorized issuers (organizations, employers, institutions)
+   - Revoke issuer authorization
+   - Track issuer details and status
 
-### 3. `restrict-assets?` - Post-Condition Asset Protection
-- **Used in**: All external contract calls to prevent unexpected asset movements
-- **Benefit**: Automatic rollback if external contracts move assets beyond allowed limits
-- **Location**: Wrapped around all `contract-call?` invocations
+2. **Service Proof Issuance**
+   - Issue immutable service records
+   - Support multiple service types (internship, NYSC, volunteering, etc.)
+   - Store cryptographic hash of credentials
+   - Track service duration and dates
 
-### 4. `to-ascii?` - Value to String Conversion (Future)
-- **Planned for**: Enhanced error messages and debugging
-- **Status**: Optional enhancement for better UX
+3. **Verification**
+   - Public functions to verify any service proof
+   - Validate credential hashes
+   - Retrieve proof details
 
-### 5. `secp256r1-verify` - Passkey Integration (Future)
-- **Planned for**: Hardware wallet and biometric authentication
-- **Status**: Future enhancement for admin functions
+4. **Participant Management**
+   - Track all proofs for each participant
+   - Index proofs for efficient retrieval
+   - Count total proofs per participant
 
-For detailed implementation information, see [CLARITY4-IMPLEMENTATION-PLAN.md](./CLARITY4-IMPLEMENTATION-PLAN.md).
+## Service Types Supported
 
-## Project Structure
+- **Internship** (`u1`) - Corporate internships, attachments
+- **NYSC** (`u2`) - National Youth Service Corps primary assignment
+- **Volunteering** (`u3`) - NGO and community service
+- **Apprenticeship** (`u4`) - Trade and skill apprenticeships
+- **Training** (`u5`) - Professional training programs
+- **CDS** (`u6`) - Community Development Service (NYSC)
 
-```
-smart-contract/
-├── contracts/              # Clarity smart contract files
-│   ├── lending-pool.clar  # Main lending pool contract
-│   └── mock-oracle.clar   # Mock oracle for price feeds
-├── tests/                  # Test files for contracts
-│   ├── lending-pool.test.ts
-│   └── mock-oracle.test.ts
-├── settings/               # Network configuration files
-│   ├── Devnet.toml        # Local development settings
-│   └── Testnet.toml       # Testnet deployment settings
-├── deployments/            # Deployment plans (generated)
-├── Clarinet.toml          # Clarinet configuration
-├── package.json           # Node.js dependencies
-└── README.md             # This file
-```
+## Key Features
 
-## Prerequisites
+### Immutability
+- Service proofs cannot be modified once issued
+- Anchored to Bitcoin via Stacks for permanent record
 
-Before you begin, ensure you have:
+### Cryptographic Verification
+- Only hashes stored on-chain (privacy-preserving)
+- Original documents stored off-chain
+- Anyone can verify authenticity by comparing hashes
 
-- **Clarinet** installed - [Installation Guide](https://docs.hiro.so/clarinet/getting-started)
-- **Node.js** (v18 or higher) - [Download](https://nodejs.org/en/download)
-- **Git** for version control
+### Access Control
+- Only contract owner can register/revoke issuers
+- Only authorized issuers can issue proofs
+- Anyone can read and verify proofs
 
-## Setup Instructions
+### Event Emission
+- All proof issuances emit events for indexing
+- Enables building search/analytics on top
 
-### 1. Initialize Clarinet Project
+## Installation & Setup
 
-If starting fresh, initialize a new Clarinet project:
+### Prerequisites
+- **Clarinet** - [Installation Guide](https://docs.hiro.so/clarinet/getting-started)
+- **Node.js** 18+ and npm
 
-```bash
-clarinet new stacks-lending-pool
-cd stacks-lending-pool
-```
-
-### 2. Add Contract Requirements
-
-Add the required contract dependencies:
-
-```bash
-clarinet requirements add SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token
-clarinet requirements add SM1793C4R5PZ4NS4VQ4WMP7SKKYVH8JZEWSZ9HCCR.token-stx-v-1-2
-clarinet requirements add SM1793C4R5PZ4NS4VQ4WMP7SKKYVH8JZEWSZ9HCCR.xyk-swap-helper-v-1-3
-clarinet requirements add SM1793C4R5PZ4NS4VQ4WMP7SKKYVH8JZEWSZ9HCCR.xyk-pool-sbtc-stx-v-1-1
-```
-
-### 3. Create Contracts
-
-Create the contract files:
-
-```bash
-clarinet contract new lending-pool
-clarinet contract new mock-oracle
-```
-
-### 4. Install Dependencies
-
-Install Node.js dependencies for testing:
+### Install Dependencies
 
 ```bash
 npm install
 ```
 
-This installs:
-- **@stacks/clarinet-sdk**: SDK for Clarinet simnet interactions
-- **@stacks/clarinet-sdk-wasm**: WASM bindings for Clarinet
-- **@stacks/transactions**: For building Clarity values in tests (Cl.bool, Cl.uint, Cl.principal, etc.)
-- **vitest**: Testing framework
-- **vitest-environment-clarinet**: Vitest environment for Clarinet tests
-
-### 5. Configure Mainnet Execution Simulation (MXS)
-
-Edit `Clarinet.toml` and update the `[repl.remote_data]` section:
-
-```toml
-[repl.remote_data]
-enabled = true
-api_url = 'https://api.hiro.so'
-use_mainnet_wallets = true
-```
-
-This enables testing with actual mainnet contracts (like Bitflow DEX) without spending real money.
-
-## Contract Architecture
-
-### Mock Oracle Contract
-
-A simple mock oracle for providing BTC/STX price data during development and testing.
-
-**Key Functions:**
-- `initialize`: Set the oracle updater address
-- `update-price`: Update the BTC/STX price
-- `get-price`: Read the current price
-- `get-updater`: Get the updater address
-
-### Lending Pool Contract
-
-The main contract that handles all lending, borrowing, and liquidation logic.
-
-**Key Functions:**
-
-**Lending:**
-- `deposit-stx`: Deposit STX to earn yield
-- `withdraw-stx`: Withdraw STX + earned interest
-- `get-pending-yield`: Check pending yield for a lender
-
-**Borrowing:**
-- `borrow-stx`: Borrow STX against sBTC collateral
-- `repay`: Repay loan and reclaim collateral
-- `get-debt`: Get total debt (principal + interest) for a borrower
-
-**Liquidation:**
-- `liquidate`: Liquidate an undercollateralized position
-
-**Helpers:**
-- `get-sbtc-stx-price`: Get price from oracle
-- `accrue-interest`: Accrue interest for all lenders
-
-## Protocol Parameters
-
-- **LTV Percentage**: 70% - Maximum loan-to-value ratio
-- **Interest Rate**: 10% annually
-- **Liquidation Threshold**: 100% - When liquidation can be triggered
-- **Liquidator Bounty**: 10% of collateral
-
-## Testing
-
-Run the test suite:
+### Run Tests
 
 ```bash
 npm run test
 ```
 
-Or run tests with Clarinet:
+### Check Contract Syntax
 
 ```bash
-clarinet test
+clarinet check
 ```
 
-## Development Workflow
+### Interactive Console
 
-1. **Write Contracts**: Add your Clarity code in `contracts/`
-2. **Write Tests**: Add test cases in `tests/`
-3. **Run Tests**: Verify functionality with `npm run test`
-4. **Check Syntax**: Validate contract syntax with `clarinet check`
-5. **Deploy**: Generate deployment plan and deploy to testnet
+```bash
+clarinet console
+```
+
+## Contract Functions
+
+### Admin Functions (Contract Owner Only)
+
+#### register-issuer
+Register a new authorized issuer.
+
+```clarity
+(contract-call? .service-verification register-issuer
+  'SP2J6ZY48GV1EZ5V2V5RB9MP66SW86PYKKNRV9EJ7  ;; issuer address
+  "Andela Nigeria"                                 ;; name
+  "Tech Training Organization"                     ;; organization-type
+)
+```
+
+#### revoke-issuer
+Revoke an issuer's authorization.
+
+```clarity
+(contract-call? .service-verification revoke-issuer
+  'SP2J6ZY48GV1EZ5V2V5RB9MP66SW86PYKKNRV9EJ7  ;; issuer address
+)
+```
+
+### Issuer Functions (Authorized Issuers Only)
+
+#### issue-service-proof
+Issue a new service verification proof.
+
+```clarity
+(contract-call? .service-verification issue-service-proof
+  'SP2ZD731ANQZT6J4K3F5N8A40ZXWXC1XFXHVVQFKE      ;; participant
+  u1                                               ;; service-type (internship)
+  0x1234567890abcdef...                            ;; credential-hash (32 bytes)
+  u1640995200                                      ;; start-date (unix timestamp)
+  u1656547200                                      ;; end-date (unix timestamp)
+  u180                                             ;; duration-days
+  (some "ipfs://Qm...")                            ;; metadata-uri (optional)
+)
+```
+
+### Read-Only Functions (Public)
+
+#### get-service-proof
+Retrieve a service proof by ID.
+
+```clarity
+(contract-call? .service-verification get-service-proof u1)
+```
+
+#### verify-proof
+Verify a proof by comparing hashes.
+
+```clarity
+(contract-call? .service-verification verify-proof
+  u1                                    ;; proof-id
+  0x1234567890abcdef...                 ;; expected-hash
+)
+```
+
+#### is-authorized-issuer
+Check if an address is an authorized issuer.
+
+```clarity
+(contract-call? .service-verification is-authorized-issuer
+  'SP2J6ZY48GV1EZ5V2V5RB9MP66SW86PYKKNRV9EJ7
+)
+```
+
+#### get-participant-proof-count
+Get total proofs for a participant.
+
+```clarity
+(contract-call? .service-verification get-participant-proof-count
+  'SP2ZD731ANQZT6J4K3F5N8A40ZXWXC1XFXHVVQFKE
+)
+```
+
+#### get-statistics
+Get total issuers and proofs.
+
+```clarity
+(contract-call? .service-verification get-statistics)
+```
+
+## Data Structures
+
+### Authorized Issuers
+
+```clarity
+{
+  name: (string-ascii 100),
+  organization-type: (string-ascii 50),
+  authorized-at: uint,
+  authorized-by: principal,
+  is-active: bool
+}
+```
+
+### Service Proofs
+
+```clarity
+{
+  participant: principal,
+  issuer: principal,
+  service-type: uint,
+  credential-hash: (buff 32),
+  start-date: uint,
+  end-date: uint,
+  duration-days: uint,
+  issued-at: uint,
+  metadata-uri: (optional (string-ascii 256))
+}
+```
+
+## Testing
+
+We use Vitest with the Clarinet SDK for comprehensive contract testing.
+
+### Test Structure
+
+```
+tests/
+├── service-verification.test.ts    # Main contract tests
+└── traits.test.ts                   # Trait tests (if applicable)
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+npm run test
+
+# Run specific test file
+npm run test service-verification.test.ts
+
+# Watch mode
+npm run test -- --watch
+```
+
+### Test Coverage
+
+- ✅ Issuer registration and revocation
+- ✅ Service proof issuance
+- ✅ Proof verification
+- ✅ Access control (authorization checks)
+- ✅ Error handling
+- ✅ Data retrieval functions
 
 ## Deployment
 
-### Mainnet Deployed Contracts
-
-The following contracts are deployed on Stacks mainnet:
-- Lending Pool (stackslend-v1): SPZYY7560YPR8BY63XNTDX36HBY1G8K0TST365B2.stackslend-v1
-- Mock Oracle (mock-oracle-v1): SPZYY7560YPR8BY63XNTDX36HBY1G8K0TST365B2.mock-oracle-v1
-
 ### Testnet Deployment
 
-1. Export your wallet mnemonic from your Stacks wallet
-2. Update `settings/Testnet.toml` with your deployer account mnemonic
-3. Generate deployment plan:
-   ```bash
-   clarinet deployments generate --testnet --low-cost
-   ```
-4. Deploy contract:
-   ```bash
-   clarinet deployment apply -p deployments/default.testnet-plan.yaml
-   ```
+1. **Configure Settings**
 
-## Key Concepts
+Edit `settings/Testnet.toml`:
 
-### Interest Accrual
+```toml
+[accounts.deployer]
+mnemonic = "your testnet mnemonic here"
+```
 
-Interest is accrued continuously based on:
-- Total borrowed STX
-- Time elapsed since last accrual
-- Annual interest rate (10%)
+2. **Generate Deployment Plan**
 
-### Yield Index
+```bash
+clarinet deployments generate --testnet --low-cost
+```
 
-Each lender has a `yield-index` that tracks when they deposited. This ensures:
-- Lenders only earn interest on funds they've actually supplied
-- New deposits don't retroactively earn interest from before they joined
+This creates `deployments/default.testnet-plan.yaml`.
 
-### Liquidation Process
+3. **Review Plan**
 
-When a position becomes undercollateralized:
-1. Liquidator triggers liquidation
-2. 10% of collateral goes to liquidator as bounty
-3. Remaining 90% is sold on Bitflow DEX for STX
-4. STX from sale is distributed to lenders as yield
-5. Borrower's debt is forfeited
+Check the generated plan file to ensure correct configuration.
 
-## Integration Points
+4. **Deploy**
 
-- **sBTC Token**: For collateral deposits
-- **Bitflow DEX**: For liquidating collateral (sBTC → STX swaps)
-- **Mock Oracle**: For price feeds (replace with Pyth in production)
+```bash
+clarinet deployment apply -p deployments/default.testnet-plan.yaml
+```
+
+### Mainnet Deployment
+
+1. **Configure Settings**
+
+Edit `settings/Mainnet.toml`:
+
+```toml
+[accounts.deployer]
+mnemonic = "your mainnet mnemonic here"
+```
+
+2. **Generate Deployment Plan**
+
+```bash
+clarinet deployments generate --mainnet --medium-cost
+```
+
+3. **Review and Deploy**
+
+⚠️ **IMPORTANT**: Triple-check all settings before mainnet deployment!
+
+```bash
+clarinet deployment apply -p deployments/default.mainnet-plan.yaml
+```
+
+## Integration Guide
+
+### Frontend Integration
+
+See [Frontend README](../frontend/README.md) for detailed integration examples.
+
+Example contract call from frontend:
+
+```typescript
+import { openContractCall } from '@stacks/connect';
+import { uintCV, principalCV, bufferCV, someCV, stringAsciiCV } from '@stacks/transactions';
+
+// Issue a service proof
+await openContractCall({
+  contractAddress: 'SP2J6ZY48GV1EZ5V2V5RB9MP66SW86PYKKNRV9EJ7',
+  contractName: 'service-verification',
+  functionName: 'issue-service-proof',
+  functionArgs: [
+    principalCV('SP2ZD731ANQZT6J4K3F5N8A40ZXWXC1XFXHVVQFKE'),
+    uintCV(1),  // SERVICE_TYPE_INTERNSHIP
+    bufferCV(Buffer.from('credential-hash-here')),
+    uintCV(1640995200),
+    uintCV(1656547200),
+    uintCV(180),
+    someCV(stringAsciiCV('ipfs://Qm...'))
+  ],
+  onFinish: (data) => console.log('Transaction:', data),
+});
+```
+
+## Security Considerations
+
+### Access Control
+- Contract owner is set at deployment (tx-sender)
+- Only owner can register/revoke issuers
+- Only authorized issuers can issue proofs
+- All proofs are public and verifiable
+
+### Data Privacy
+- Only hashes stored on-chain, not actual documents
+- Metadata URIs are optional
+- Participants control off-chain documents
+
+### Immutability
+- Proofs cannot be modified after issuance
+- Issuer revocation doesn't affect existing proofs
+- Consider implications carefully before issuing
+
+## Roadmap
+
+### Current Features
+- ✅ Issuer registration and management
+- ✅ Service proof issuance
+- ✅ Proof verification
+- ✅ Multiple service types
+
+### Planned Features
+- 📋 Multi-signature issuer authorization
+- 📋 Proof expiration/renewal
+- 📋 Proof revocation mechanism
+- 📋 NFT-based credential representation
+- 📋 Integration with decentralized identity standards
 
 ## Resources
 
-- [Clarity Documentation](https://docs.hiro.so/clarity)
-- [Clarinet Documentation](https://docs.hiro.so/clarinet)
 - [Stacks Documentation](https://docs.stacks.co)
-- [Bitflow DEX](https://bitflow.finance)
+- [Clarity Language Reference](https://docs.hiro.so/clarity)
+- [Clarinet Documentation](https://docs.hiro.so/clarinet)
+- [Testing with Vitest](https://vitest.dev)
 
-## Contributing
+## Support
 
-When contributing to the smart contracts:
+For issues and questions:
+- Check test files for usage examples
+- Review contract comments
+- Open an issue on GitHub
 
-1. Create a feature branch
-2. Write tests for your changes
-3. Ensure all tests pass
-4. Update documentation as needed
-5. Submit a pull request
+---
 
-## License
-
-[Add your license here]
+**Built for trust, credibility, and opportunity on Bitcoin**

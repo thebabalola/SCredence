@@ -1,7 +1,7 @@
 {
-  "name": "lending-pool-tests",
+  "name": "scredence-contracts",
   "version": "1.0.0",
-  "description": "Run unit tests on this project.",
+  "description": "SCredence service verification smart contracts - Bitcoin-anchored verification for professional service",
   "type": "module",
   "private": true,
   "scripts": {
