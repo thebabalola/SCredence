@@ -227,7 +227,7 @@
     ;; Validate inputs
     (asserts! (not (is-eq participant tx-sender)) ERR_INVALID_PARTICIPANT) ;; Issuer cannot issue to self
     (asserts! (is-eq (len credential-hash) u32) ERR_INVALID_HASH)
-    (match metadata-uri uri (asserts! (> (len uri) u0) ERR_INVALID_URI) true)
+    (asserts! (match metadata-uri uri (> (len uri) u0) true) ERR_INVALID_URI)
     
     ;; Validate service type
     (asserts! 
