@@ -9,10 +9,15 @@
 (define-constant ERR_UNAUTHORIZED (err u100))
 (define-constant ERR_ISSUER_NOT_AUTHORIZED (err u101))
 (define-constant ERR_ISSUER_ALREADY_EXISTS (err u102))
-(define-constant ERR_PROOF_ALREADY_EXISTS (err u103))
+;; ERR_PROOF_ALREADY_EXISTS removed as unused
 (define-constant ERR_PROOF_NOT_FOUND (err u104))
 (define-constant ERR_INVALID_SERVICE_TYPE (err u105))
 (define-constant ERR_INVALID_DURATION (err u106))
+(define-constant ERR_INVALID_NAME (err u107))
+(define-constant ERR_INVALID_ORG_TYPE (err u108))
+(define-constant ERR_INVALID_PARTICIPANT (err u109))
+(define-constant ERR_INVALID_HASH (err u110))
+(define-constant ERR_INVALID_URI (err u111))
 
 ;; ============================================
 ;; Service Type Constants
@@ -27,7 +32,7 @@
 ;; ============================================
 ;; Data Variables
 ;; ============================================
-(define-data-var contract-owner principal tx-sender)
+(define-constant CONTRACT_OWNER tx-sender)
 (define-data-var total-issuers uint u0)
 (define-data-var total-proofs uint u0)
 
@@ -81,7 +86,7 @@
 
 ;; Get contract owner
 (define-read-only (get-contract-owner)
-  (ok (var-get contract-owner))
+  (ok CONTRACT_OWNER)
 )
 
 ;; Check if an address is an authorized issuer
@@ -150,7 +155,11 @@
 )
   (begin
     ;; Only contract owner can register issuers
-    (asserts! (is-eq tx-sender (var-get contract-owner)) ERR_UNAUTHORIZED)
+    (asserts! (is-eq tx-sender CONTRACT_OWNER) ERR_UNAUTHORIZED)
+    
+    ;; Validate inputs
+    (asserts! (> (len name) u0) ERR_INVALID_NAME)
+    (asserts! (> (len organization-type) u0) ERR_INVALID_ORG_TYPE)
     
     ;; Check if issuer already exists
     (asserts! (is-none (map-get? authorized-issuers issuer)) ERR_ISSUER_ALREADY_EXISTS)
@@ -159,7 +168,7 @@
     (map-set authorized-issuers issuer {
       name: name,
       organization-type: organization-type,
-      authorized-at: stacks-block-height,
+      authorized-at: stacks-block-time,
       authorized-by: tx-sender,
       is-active: true
     })
@@ -175,7 +184,8 @@
 (define-public (revoke-issuer (issuer principal))
   (begin
     ;; Only contract owner can revoke issuers
-    (asserts! (is-eq tx-sender (var-get contract-owner)) ERR_UNAUTHORIZED)
+    (asserts! (is-eq tx-sender CONTRACT_OWNER) ERR_UNAUTHORIZED)
+    (asserts! (not (is-eq issuer CONTRACT_OWNER)) ERR_UNAUTHORIZED) ;; Cannot revoke owner (validation)
     
     ;; Get existing issuer data
     (match (map-get? authorized-issuers issuer)
@@ -214,6 +224,11 @@
     ;; Only authorized issuers can issue proofs
     (asserts! (is-authorized-issuer tx-sender) ERR_ISSUER_NOT_AUTHORIZED)
     
+    ;; Validate inputs
+    (asserts! (not (is-eq participant tx-sender)) ERR_INVALID_PARTICIPANT) ;; Issuer cannot issue to self
+    (asserts! (is-eq (len credential-hash) u32) ERR_INVALID_HASH)
+    (match metadata-uri uri (asserts! (> (len uri) u0) ERR_INVALID_URI) true)
+    
     ;; Validate service type
     (asserts! 
       (or
@@ -240,7 +255,7 @@
       start-date: start-date,
       end-date: end-date,
       duration-days: duration-days,
-      issued-at: stacks-block-height,
+      issued-at: stacks-block-time,
       metadata-uri: metadata-uri
     })
     
@@ -263,7 +278,7 @@
       participant: participant,
       issuer: tx-sender,
       service-type: service-type,
-      issued-at: stacks-block-height
+      issued-at: stacks-block-time
     })
     
     (ok proof-id)
