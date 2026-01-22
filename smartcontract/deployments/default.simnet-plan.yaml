@@ -30,6 +30,7 @@ genesis:
     - pox-4
     - signers
     - signers-voting
+    - costs-4
 plan:
   batches:
     - id: 0
@@ -38,10 +39,10 @@ plan:
             contract-name: service-verification
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/service-verification.clar
-            clarity-version: 3
+            clarity-version: 4
         - emulated-contract-publish:
             contract-name: traits
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/traits.clar
-            clarity-version: 3
-      epoch: "3.2"
+            clarity-version: 4
+      epoch: "3.3"

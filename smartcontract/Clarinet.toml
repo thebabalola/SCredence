@@ -8,13 +8,13 @@ requirements = []
 
 [contracts.service-verification]
 path = 'contracts/service-verification.clar'
-clarity_version = 3
-epoch = 'latest'
+clarity_version = 4
+epoch = '3.3'
 
 [contracts.traits]
 path = 'contracts/traits.clar'
-clarity_version = 3
-epoch = 'latest'
+clarity_version = 4
+epoch = '3.3'
 
 [repl.analysis]
 passes = ['check_checker']
