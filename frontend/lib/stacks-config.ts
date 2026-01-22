@@ -1,5 +1,5 @@
 export const STACKS_APP_DETAILS = {
-  name: "StacksLend",
+  name: "SCredence",
   icon: "/favicon.ico",
 };
 

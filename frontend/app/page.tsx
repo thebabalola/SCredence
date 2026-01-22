@@ -6,7 +6,7 @@ export default function Home() {
       <div className="mx-auto flex max-w-4xl flex-col gap-8 px-6 py-16">
         <header className="flex flex-col gap-3">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-indigo-600">
-            StacksLend
+            SCredence
           </p>
           <h1 className="text-4xl font-semibold leading-tight text-slate-900">
             Connect your Stacks wallet
