@@ -18,6 +18,7 @@
 (define-constant ERR_INVALID_PARTICIPANT (err u109))
 (define-constant ERR_INVALID_HASH (err u110))
 (define-constant ERR_INVALID_URI (err u111))
+(define-constant ERR_PROOF_REVOKED (err u112))
 
 ;; ============================================
 ;; Service Type Constants
@@ -80,6 +81,15 @@
   uint
 )
 
+;; Revoked proofs tracking
+(define-map revoked-proofs
+  uint  ;; proof-id
+  {
+    revoked-at: uint,
+    reason: (string-ascii 100)
+  }
+)
+
 ;; ============================================
 ;; Read-Only Functions
 ;; ============================================
@@ -120,6 +130,16 @@
   )
 )
 
+;; Check if a proof is revoked
+(define-read-only (is-proof-revoked (proof-id uint))
+  (is-some (map-get? revoked-proofs proof-id))
+)
+
+;; Get revocation details if any
+(define-read-only (get-revocation-details (proof-id uint))
+  (map-get? revoked-proofs proof-id)
+)
+
 ;; Get total statistics
 (define-read-only (get-statistics)
   (ok {
@@ -133,11 +153,15 @@
   (match (map-get? service-proofs { proof-id: proof-id })
     proof-data
       (ok {
-        is-valid: (is-eq (get credential-hash proof-data) expected-hash),
+        is-valid: (and 
+          (is-eq (get credential-hash proof-data) expected-hash)
+          (not (is-proof-revoked proof-id))
+        ),
         participant: (get participant proof-data),
         issuer: (get issuer proof-data),
         service-type: (get service-type proof-data),
-        issued-at: (get issued-at proof-data)
+        issued-at: (get issued-at proof-data),
+        is-revoked: (is-proof-revoked proof-id)
       })
     ERR_PROOF_NOT_FOUND
   )
@@ -282,6 +306,37 @@
     })
     
     (ok proof-id)
+  )
+)
+
+;; Revoke a service proof (only by the original issuer)
+(define-public (revoke-service-proof (proof-id uint) (reason (string-ascii 100)))
+  (let
+    (
+      (proof-data (unwrap! (map-get? service-proofs { proof-id: proof-id }) ERR_PROOF_NOT_FOUND))
+    )
+    ;; Only the original issuer can revoke the proof
+    (asserts! (is-eq (get issuer proof-data) tx-sender) ERR_UNAUTHORIZED)
+    
+    ;; Check if already revoked
+    (asserts! (is-none (map-get? revoked-proofs proof-id)) ERR_PROOF_REVOKED)
+    
+    ;; Add to revoked-proofs map
+    (map-set revoked-proofs proof-id {
+      revoked-at: stacks-block-time,
+      reason: reason
+    })
+    
+    ;; Print event for indexing
+    (print {
+      event: "service-proof-revoked",
+      proof-id: proof-id,
+      issuer: tx-sender,
+      revoked-at: stacks-block-time,
+      reason: reason
+    })
+    
+    (ok true)
   )
 )
 
