@@ -282,6 +282,7 @@ describe("Service Verification Contract Tests", () => {
           Cl.uint(1640995200),  // start date
           Cl.uint(1656547200),  // end date
           Cl.uint(180),         // duration days
+          Cl.none(),            // expiry date
           Cl.some(Cl.stringAscii("ipfs://Qm..."))
         ],
         issuer1
@@ -301,6 +302,7 @@ describe("Service Verification Contract Tests", () => {
           Cl.uint(1640995200),
           Cl.uint(1656547200),
           Cl.uint(180),
+          Cl.none(), // expiry
           Cl.some(Cl.stringAscii("ipfs://Qm..."))
         ],
         issuer2  // Not authorized
@@ -320,6 +322,7 @@ describe("Service Verification Contract Tests", () => {
           Cl.uint(1640995200),
           Cl.uint(1656547200),
           Cl.uint(180),
+          Cl.none(), // expiry
           Cl.some(Cl.stringAscii("ipfs://Qm..."))
         ],
         issuer1
@@ -339,6 +342,7 @@ describe("Service Verification Contract Tests", () => {
           Cl.uint(1640995200),
           Cl.uint(1656547200),
           Cl.uint(0),  // Zero duration
+          Cl.none(), // expiry
           Cl.some(Cl.stringAscii("ipfs://Qm..."))
         ],
         issuer1
@@ -358,6 +362,7 @@ describe("Service Verification Contract Tests", () => {
           Cl.uint(1656547200),  // Later date as start
           Cl.uint(1640995200),  // Earlier date as end
           Cl.uint(180),
+          Cl.none(), // expiry
           Cl.some(Cl.stringAscii("ipfs://Qm..."))
         ],
         issuer1
@@ -378,6 +383,7 @@ describe("Service Verification Contract Tests", () => {
           Cl.uint(1640995200),
           Cl.uint(1656547200),
           Cl.uint(180),
+          Cl.none(), // expiry
           Cl.some(Cl.stringAscii("ipfs://Qm..."))
         ],
         issuer1
@@ -419,6 +425,7 @@ describe("Service Verification Contract Tests", () => {
             Cl.uint(1640995200),
             Cl.uint(1656547200),
             Cl.uint(180),
+            Cl.none(), // expiry
             Cl.some(Cl.stringAscii("ipfs://Qm..."))
           ],
           issuer1
@@ -454,6 +461,7 @@ describe("Service Verification Contract Tests", () => {
           Cl.uint(1640995200),
           Cl.uint(1656547200),
           Cl.uint(180),
+          Cl.none(), // expiry
           Cl.some(Cl.stringAscii("ipfs://Qm123"))
         ],
         issuer1
@@ -521,6 +529,7 @@ describe("Service Verification Contract Tests", () => {
           Cl.uint(1640995200),
           Cl.uint(1656547200),
           Cl.uint(180),
+          Cl.none(), // expiry
           Cl.some(Cl.stringAscii("ipfs://Qm..."))
         ],
         issuer1
@@ -548,6 +557,7 @@ describe("Service Verification Contract Tests", () => {
           Cl.uint(1640995200),
           Cl.uint(1656547200),
           Cl.uint(180),
+          Cl.none(), // expiry
           Cl.some(Cl.stringAscii("ipfs://Qm..."))
         ],
         issuer1
@@ -597,6 +607,7 @@ describe("Service Verification Contract Tests", () => {
           Cl.uint(1640995200),
           Cl.uint(1656547200),
           Cl.uint(180),
+          Cl.none(), // expiry
           Cl.some(Cl.stringAscii("ipfs://Qm..."))
         ],
         issuer1
@@ -680,6 +691,7 @@ describe("Service Verification Contract Tests", () => {
           Cl.uint(1640995200),
           Cl.uint(1656547200),
           Cl.uint(180),
+          Cl.none(), // expiry
           Cl.some(Cl.stringAscii("ipfs://Qm..."))
         ],
         issuer1
@@ -757,6 +769,149 @@ describe("Service Verification Contract Tests", () => {
       const data = (details.result as any).value.value;
       expect(data["reason"]).toEqual(Cl.stringAscii(reason));
       expect(data["revoked-at"].type).toBe("uint");
+    });
+  });
+
+  describe("Proof Expiration & Renewal", () => {
+    beforeEach(() => {
+      // Register issuer
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "register-issuer",
+        [
+          Cl.principal(issuer1),
+          Cl.stringAscii("Andela Nigeria"),
+          Cl.stringAscii("Tech Training")
+        ],
+        deployer
+      );
+    });
+
+    it("should allow issuing a proof with an expiry date", () => {
+      const expiry = 1800000000;
+      const result = simnet.callPublicFn(
+        CONTRACT_NAME,
+        "issue-service-proof",
+        [
+          Cl.principal(participant1),
+          Cl.uint(SERVICE_TYPE_INTERNSHIP),
+          Cl.buffer(TEST_CREDENTIAL_HASH),
+          Cl.uint(1640995200),
+          Cl.uint(1656547200),
+          Cl.uint(180),
+          Cl.some(Cl.uint(expiry)),
+          Cl.none()
+        ],
+        issuer1
+      );
+
+      expect(result.result).toBeOk(Cl.uint(1));
+      
+      const proof = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "get-service-proof",
+        [Cl.uint(1)],
+        deployer
+      );
+      const proofData = (proof.result as any).value.value.value;
+      expect(proofData["expiry-date"]).toEqual(Cl.some(Cl.uint(expiry)));
+    });
+
+    it("should fail verification for expired proof", () => {
+      // Issue proof with expiry in the past relative to current simnet time
+      // Current simnet time is roughly 1769112603
+      const pastExpiry = 1700000000;
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "issue-service-proof",
+        [
+          Cl.principal(participant1),
+          Cl.uint(SERVICE_TYPE_INTERNSHIP),
+          Cl.buffer(TEST_CREDENTIAL_HASH),
+          Cl.uint(1640995200),
+          Cl.uint(1656547200),
+          Cl.uint(180),
+          Cl.some(Cl.uint(pastExpiry)),
+          Cl.none()
+        ],
+        issuer1
+      );
+
+      const result = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "verify-proof",
+        [Cl.uint(1), Cl.buffer(TEST_CREDENTIAL_HASH)],
+        deployer
+      );
+
+      const data = (result.result as any).value.value;
+      expect(data["is-valid"]).toEqual(Cl.bool(false));
+      expect(data["is-expired"]).toEqual(Cl.bool(true));
+    });
+
+    it("should allow issuer to renew proof", () => {
+      // Issue proof
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "issue-service-proof",
+        [
+          Cl.principal(participant1),
+          Cl.uint(SERVICE_TYPE_INTERNSHIP),
+          Cl.buffer(TEST_CREDENTIAL_HASH),
+          Cl.uint(1640995200),
+          Cl.uint(1656547200),
+          Cl.uint(180),
+          Cl.none(),
+          Cl.none()
+        ],
+        issuer1
+      );
+
+      const newExpiry = 2000000000;
+      const result = simnet.callPublicFn(
+        CONTRACT_NAME,
+        "renew-service-proof",
+        [Cl.uint(1), Cl.uint(newExpiry)],
+        issuer1
+      );
+
+      expect(result.result).toBeOk(Cl.bool(true));
+
+      const proof = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "get-service-proof",
+        [Cl.uint(1)],
+        deployer
+      );
+      const proofData = (proof.result as any).value.value.value;
+      expect(proofData["expiry-date"]).toEqual(Cl.some(Cl.uint(newExpiry)));
+    });
+
+    it("should fail renewal if not original issuer", () => {
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "issue-service-proof",
+        [
+          Cl.principal(participant1),
+          Cl.uint(SERVICE_TYPE_INTERNSHIP),
+          Cl.buffer(TEST_CREDENTIAL_HASH),
+          Cl.uint(1640995200),
+          Cl.uint(1656547200),
+          Cl.uint(180),
+          Cl.none(),
+          Cl.none()
+        ],
+        issuer1
+      );
+
+      const result = simnet.callPublicFn(
+        CONTRACT_NAME,
+        "renew-service-proof",
+        [Cl.uint(1), Cl.uint(2000000000)],
+        issuer2 // Not the issuer
+      );
+
+      expect(result.result).toBeErr(Cl.uint(100)); // ERR_UNAUTHORIZED
     });
   });
 });

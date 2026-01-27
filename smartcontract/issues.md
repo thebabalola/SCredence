@@ -40,8 +40,13 @@ This document outlines the roadmap and tasks for building the Bitcoin-anchored s
 
 #### Issue #5: Proof Expiration & Renewal
 **Priority:** Medium  
-**Status:** ❌ Pending  
+**Status:** ✅ Completed  
 **Description:** Support time-limited credentials that can be renewed by issuers.
+- **Tasks:**
+  - [x] Add `expiry-date` to `service-proofs` map.
+  - [x] Update `issue-service-proof` to handle expiry validation.
+  - [x] Implement `renew-service-proof` function.
+  - [x] Update verification logic to check for expiration.
 
 ---
 
