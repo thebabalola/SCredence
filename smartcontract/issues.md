@@ -31,12 +31,12 @@ This document outlines the roadmap and tasks for building the Bitcoin-anchored s
 
 #### Issue #4: Proof Revocation Mechanism
 **Priority:** High  
-**Status:** ❌ Pending  
+**Status:** ✅ Completed  
 **Description:** Enable issuers to revoke proofs in case of errors or fraudulent information.
 - **Tasks:**
-  - [ ] Add `revoked-proofs` map.
-  - [ ] Implement `revoke-service-proof` function.
-  - [ ] Update verification logic to check for revocation status.
+  - [x] Add `revoked-proofs` map.
+  - [x] Implement `revoke-service-proof` function.
+  - [x] Update verification logic to check for revocation status.
 
 #### Issue #5: Proof Expiration & Renewal
 **Priority:** Medium  

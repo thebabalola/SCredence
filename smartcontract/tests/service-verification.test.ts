@@ -654,4 +654,109 @@ describe("Service Verification Contract Tests", () => {
       expect(result.result).toBeErr(Cl.uint(104)); // ERR_PROOF_NOT_FOUND
     });
   });
+
+  describe("Proof Revocation", () => {
+    beforeEach(() => {
+      // Register issuer
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "register-issuer",
+        [
+          Cl.principal(issuer1),
+          Cl.stringAscii("Andela Nigeria"),
+          Cl.stringAscii("Tech Training")
+        ],
+        deployer
+      );
+
+      // Issue proof
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "issue-service-proof",
+        [
+          Cl.principal(participant1),
+          Cl.uint(SERVICE_TYPE_INTERNSHIP),
+          Cl.buffer(TEST_CREDENTIAL_HASH),
+          Cl.uint(1640995200),
+          Cl.uint(1656547200),
+          Cl.uint(180),
+          Cl.some(Cl.stringAscii("ipfs://Qm..."))
+        ],
+        issuer1
+      );
+    });
+
+    it("should allow issuer to revoke their own proof", () => {
+      const result = simnet.callPublicFn(
+        CONTRACT_NAME,
+        "revoke-service-proof",
+        [Cl.uint(1), Cl.stringAscii("Incorrect information provided")],
+        issuer1
+      );
+
+      expect(result.result).toBeOk(Cl.bool(true));
+      
+      const isRevoked = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "is-proof-revoked",
+        [Cl.uint(1)],
+        deployer
+      );
+      expect(isRevoked.result).toBeBool(true);
+    });
+
+    it("should fail if non-issuer tries to revoke proof", () => {
+      const result = simnet.callPublicFn(
+        CONTRACT_NAME,
+        "revoke-service-proof",
+        [Cl.uint(1), Cl.stringAscii("Unauthorized attempt")],
+        issuer2 // Not the issuer
+      );
+
+      expect(result.result).toBeErr(Cl.uint(100)); // ERR_UNAUTHORIZED
+    });
+
+    it("should fail verification for revoked proof", () => {
+      // Revoke the proof
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "revoke-service-proof",
+        [Cl.uint(1), Cl.stringAscii("Revoked for testing")],
+        issuer1
+      );
+
+      const result = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "verify-proof",
+        [Cl.uint(1), Cl.buffer(TEST_CREDENTIAL_HASH)],
+        deployer
+      );
+
+      const data = (result.result as any).value.value;
+      expect(data["is-valid"]).toEqual(Cl.bool(false));
+      expect(data["is-revoked"]).toEqual(Cl.bool(true));
+    });
+
+    it("should return revocation details", () => {
+      const reason = "Administrative error";
+      simnet.callPublicFn(
+        CONTRACT_NAME,
+        "revoke-service-proof",
+        [Cl.uint(1), Cl.stringAscii(reason)],
+        issuer1
+      );
+
+      const details = simnet.callReadOnlyFn(
+        CONTRACT_NAME,
+        "get-revocation-details",
+        [Cl.uint(1)],
+        deployer
+      );
+
+      expect(details.result).toBeSome(expect.anything());
+      const data = (details.result as any).value.value;
+      expect(data["reason"]).toEqual(Cl.stringAscii(reason));
+      expect(data["revoked-at"].type).toBe("uint");
+    });
+  });
 });
