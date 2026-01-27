@@ -19,6 +19,7 @@
 (define-constant ERR_INVALID_HASH (err u110))
 (define-constant ERR_INVALID_URI (err u111))
 (define-constant ERR_PROOF_REVOKED (err u112))
+(define-constant ERR_PROOF_EXPIRED (err u113))
 
 ;; ============================================
 ;; Service Type Constants
@@ -65,6 +66,7 @@
     end-date: uint,
     duration-days: uint,
     issued-at: uint,
+    expiry-date: (optional uint),
     metadata-uri: (optional (string-ascii 256))
   }
 )
@@ -135,6 +137,17 @@
   (is-some (map-get? revoked-proofs proof-id))
 )
 
+;; Check if a proof is expired
+(define-read-only (is-proof-expired (proof-id uint))
+  (match (map-get? service-proofs { proof-id: proof-id })
+    proof-data (match (get expiry-date proof-data)
+      exp (< exp stacks-block-time)
+      false
+    )
+    false
+  )
+)
+
 ;; Get revocation details if any
 (define-read-only (get-revocation-details (proof-id uint))
   (map-get? revoked-proofs proof-id)
@@ -156,12 +169,14 @@
         is-valid: (and 
           (is-eq (get credential-hash proof-data) expected-hash)
           (not (is-proof-revoked proof-id))
+          (not (is-proof-expired proof-id))
         ),
         participant: (get participant proof-data),
         issuer: (get issuer proof-data),
         service-type: (get service-type proof-data),
         issued-at: (get issued-at proof-data),
-        is-revoked: (is-proof-revoked proof-id)
+        is-revoked: (is-proof-revoked proof-id),
+        is-expired: (is-proof-expired proof-id)
       })
     ERR_PROOF_NOT_FOUND
   )
@@ -238,6 +253,7 @@
   (start-date uint)
   (end-date uint)
   (duration-days uint)
+  (expiry-date (optional uint))
   (metadata-uri (optional (string-ascii 256)))
 )
   (let
@@ -269,6 +285,9 @@
     ;; Validate duration
     (asserts! (> duration-days u0) ERR_INVALID_DURATION)
     (asserts! (> end-date start-date) ERR_INVALID_DURATION)
+
+    ;; Validate expiry
+    (match expiry-date exp (asserts! (> exp end-date) ERR_INVALID_DURATION) true)
     
     ;; Create the service proof
     (map-set service-proofs { proof-id: proof-id } {
@@ -280,6 +299,7 @@
       end-date: end-date,
       duration-days: duration-days,
       issued-at: stacks-block-time,
+      expiry-date: expiry-date,
       metadata-uri: metadata-uri
     })
     
@@ -340,9 +360,38 @@
   )
 )
 
-;; ============================================
-;; Public Functions - Participant
-;; ============================================
+;; Renew an existing service proof (only by original issuer)
+(define-public (renew-service-proof (proof-id uint) (new-expiry uint))
+  (let
+    (
+      (proof-data (unwrap! (map-get? service-proofs { proof-id: proof-id }) ERR_PROOF_NOT_FOUND))
+    )
+    ;; Only the original issuer can renew the proof
+    (asserts! (is-eq (get issuer proof-data) tx-sender) ERR_UNAUTHORIZED)
+    
+    ;; Check if revoked
+    (asserts! (not (is-proof-revoked proof-id)) ERR_PROOF_REVOKED)
+
+    ;; Validate new expiry is in the future
+    (asserts! (> new-expiry stacks-block-time) ERR_INVALID_DURATION)
+    
+    ;; Update the service proof with new expiry
+    (map-set service-proofs { proof-id: proof-id } 
+      (merge proof-data { expiry-date: (some new-expiry) })
+    )
+    
+    ;; Print event for indexing
+    (print {
+      event: "service-proof-renewed",
+      proof-id: proof-id,
+      issuer: tx-sender,
+      new-expiry: new-expiry,
+      renewed-at: stacks-block-time
+    })
+    
+    (ok true)
+  )
+)
 
 ;; Get all proofs for a participant (returns list of proof IDs)
 (define-read-only (get-participant-proofs (participant principal))
