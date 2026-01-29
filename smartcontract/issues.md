@@ -56,10 +56,10 @@ This document outlines the roadmap and tasks for building the Bitcoin-anchored s
 
 #### Issue #6: Stacks Wallet Integration
 **Priority:** High  
-**Status:** ❌ Pending  
+**Status:** ✅ Completed  
 **Description:** Connect Leather/Xverse wallets to the dApp.
 
 #### Issue #7: Issuer Dashboard
 **Priority:** High  
-**Status:** ❌ Pending  
+**Status:** ✅ Completed  
 **Description:** Interface for authorized organizations to issue and manage proofs.
