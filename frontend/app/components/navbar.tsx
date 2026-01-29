@@ -12,6 +12,7 @@ export function Navbar() {
     { name: "Home", href: "/" },
     { name: "Issuers", href: "/issuers" },
     { name: "Proofs", href: "/proofs" },
+    { name: "Verify", href: "/verify" },
   ];
 
   function formatAddress(address?: string | null) {

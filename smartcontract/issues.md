@@ -63,3 +63,8 @@ This document outlines the roadmap and tasks for building the Bitcoin-anchored s
 **Priority:** High  
 **Status:** ✅ Completed  
 **Description:** Interface for authorized organizations to issue and manage proofs.
+
+#### Issue #8: Implement Proof Verification UI
+**Priority:** High  
+**Status:** ✅ Completed  
+**Description:** Create a public verification interface for checking credential authenticity.
