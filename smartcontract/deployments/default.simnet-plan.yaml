@@ -36,13 +36,13 @@ plan:
     - id: 0
       transactions:
         - emulated-contract-publish:
-            contract-name: service-verification
+            contract-name: scredence-traits-alpha
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/service-verification.clar
+            path: contracts/scredence-traits-alpha.clar
             clarity-version: 4
         - emulated-contract-publish:
-            contract-name: traits
+            contract-name: scredence-verification-alpha
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/traits.clar
+            path: contracts/scredence-verification-alpha.clar
             clarity-version: 4
       epoch: "3.3"
