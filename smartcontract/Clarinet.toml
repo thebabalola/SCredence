@@ -6,13 +6,13 @@ telemetry = true
 cache_dir = './.cache'
 requirements = []
 
-[contracts.service-verification]
-path = 'contracts/service-verification.clar'
+[contracts.scredence-verification-alpha]
+path = 'contracts/scredence-verification-alpha.clar'
 clarity_version = 4
 epoch = '3.3'
 
-[contracts.traits]
-path = 'contracts/traits.clar'
+[contracts.scredence-traits-alpha]
+path = 'contracts/scredence-traits-alpha.clar'
 clarity_version = 4
 epoch = '3.3'
 

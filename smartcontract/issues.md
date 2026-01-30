@@ -71,13 +71,13 @@ This document outlines the roadmap and tasks for building the Bitcoin-anchored s
 
 #### Issue #9: Smart Contract Mainnet Deployment
 **Priority:** Critical  
-**Status:** ❌ Pending  
+**Status:** ✅ Completed  
 **Description:** Deploy the finalized smart contracts to Stacks Mainnet.
 - **Tasks:**
-  - [ ] Configure `Clarinet.toml` for Mainnet deployment.
-  - [ ] Fund deployer wallet.
-  - [ ] Execute deployment plan.
-  - [ ] Verify contract on Stacks Explorer.
+  - [x] Configure `Clarinet.toml` for Mainnet deployment.
+  - [x] Rename contracts to `alpha` version.
+  - [x] Execute deployment plan.
+  - [x] Verify contract on Stacks Explorer.
 
 #### Issue #10: Frontend Branding & Theme Update (Orange Scheme)
 **Priority:** Medium  
