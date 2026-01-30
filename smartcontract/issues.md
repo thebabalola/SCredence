@@ -68,3 +68,31 @@ This document outlines the roadmap and tasks for building the Bitcoin-anchored s
 **Priority:** High  
 **Status:** ✅ Completed  
 **Description:** Create a public verification interface for checking credential authenticity.
+
+#### Issue #9: Smart Contract Mainnet Deployment
+**Priority:** Critical  
+**Status:** ❌ Pending  
+**Description:** Deploy the finalized smart contracts to Stacks Mainnet.
+- **Tasks:**
+  - [ ] Configure `Clarinet.toml` for Mainnet deployment.
+  - [ ] Fund deployer wallet.
+  - [ ] Execute deployment plan.
+  - [ ] Verify contract on Stacks Explorer.
+
+#### Issue #10: Frontend Branding & Theme Update (Orange Scheme)
+**Priority:** Medium  
+**Status:** ❌ Pending  
+**Description:** Align the dApp design with the Stacks ecosystem by adopting the official Orange color palette.
+- **Tasks:**
+  - [ ] Update Tailwind config with Stacks Orange primary colors.
+  - [ ] Refactor components (`Navbar`, `Buttons`, `Cards`) to use the new theme.
+  - [ ] Ensure dark mode compatibility.
+
+#### Issue #11: Frontend-Contract Integration & Mobile Responsiveness
+**Priority:** High  
+**Status:** ❌ Pending  
+**Description:** Connect the UI to the deployed contracts and ensure a mobile-first experience.
+- **Tasks:**
+  - [ ] Integrate `useStacks` with contract calls (issue, verify, revoke).
+  - [ ] Optimize `IssuerDashboard` for mobile viewports.
+  - [ ] Optimize `ProofVerification` page for mobile.
