@@ -17,7 +17,17 @@ export function Navbar() {
   const pathname = usePathname();
   const { isConnected, stxAddress, connect, disconnect } = useStacks();
 
-  // ... rest remains same until the actions section
+  const navItems = [
+    { name: "Home", href: "/", icon: Home },
+    { name: "Issuers", href: "/issuers", icon: ShieldCheck },
+    { name: "Proofs", href: "/proofs", icon: FileCheck },
+    { name: "Verify", href: "/verify", icon: Search },
+  ];
+
+  function formatAddress(address?: string | null) {
+    if (!address) return "";
+    return `${address.slice(0, 5)}…${address.slice(address.length - 5)}`;
+  }
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
@@ -59,7 +69,7 @@ export function Navbar() {
                   <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
                     <User className="w-3.5 h-3.5 text-primary" />
                   </div>
-                  <span className="font-mono text-xs text-foreground">
+                  <span className="font-mono text-xs text-foreground text-nowrap">
                     {formatAddress(stxAddress)}
                   </span>
                   <ChevronDown className="w-3.5 h-3.5 text-muted-foreground group-data-[state=open]:rotate-180 transition-transform" />
