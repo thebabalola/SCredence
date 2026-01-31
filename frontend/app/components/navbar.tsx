@@ -4,27 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useStacks } from "@/lib/hooks/use-stacks";
 
+import { ThemeToggle } from "./ui/theme-toggle";
+
 export function Navbar() {
   const pathname = usePathname();
-  const { isConnected, stxAddress, connect, disconnect } = useStacks();
-
-  const navItems = [
-    { name: "Home", href: "/" },
-    { name: "Issuers", href: "/issuers" },
-    { name: "Proofs", href: "/proofs" },
-    { name: "Verify", href: "/verify" },
-  ];
-
-  function formatAddress(address?: string | null) {
-    if (!address) return "";
-    return `${address.slice(0, 5)}…${address.slice(address.length - 5)}`;
-  }
+  // ... existing hooks
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md">
+    <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 h-16">
         <div className="flex items-center gap-10">
-          <Link href="/" className="text-xl font-bold tracking-tight text-indigo-600">
+          <Link href="/" className="text-xl font-bold tracking-tight text-primary">
             SCredence
           </Link>
           <div className="hidden md:flex gap-6">
@@ -32,8 +22,8 @@ export function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`text-sm font-medium transition-colors hover:text-indigo-600 ${
-                  pathname === item.href ? "text-indigo-600" : "text-slate-600"
+                className={`text-sm font-medium transition-colors hover:text-primary ${
+                  pathname === item.href ? "text-primary" : "text-muted-foreground"
                 }`}
               >
                 {item.name}
@@ -43,15 +33,16 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
+          <ThemeToggle />
           {isConnected ? (
             <div className="flex items-center gap-3">
-              <span className="hidden sm:inline font-mono text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+              <span className="hidden sm:inline font-mono text-xs text-muted-foreground bg-secondary px-2 py-1 rounded">
                 {formatAddress(stxAddress)}
               </span>
               <button
                 type="button"
                 onClick={disconnect}
-                className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
+                className="rounded-full bg-secondary px-4 py-2 text-xs font-semibold text-secondary-foreground transition hover:bg-secondary/80"
               >
                 Disconnect
               </button>
@@ -60,7 +51,7 @@ export function Navbar() {
             <button
               type="button"
               onClick={connect}
-              className="rounded-full bg-indigo-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-indigo-500"
+              className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90"
             >
               Connect Wallet
             </button>
