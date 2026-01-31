@@ -8,7 +8,19 @@ import { ThemeToggle } from "./ui/theme-toggle";
 
 export function Navbar() {
   const pathname = usePathname();
-  // ... existing hooks
+  const { isConnected, stxAddress, connect, disconnect } = useStacks();
+
+  const navItems = [
+    { name: "Home", href: "/" },
+    { name: "Issuers", href: "/issuers" },
+    { name: "Proofs", href: "/proofs" },
+    { name: "Verify", href: "/verify" },
+  ];
+
+  function formatAddress(address?: string | null) {
+    if (!address) return "";
+    return `${address.slice(0, 5)}…${address.slice(address.length - 5)}`;
+  }
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
