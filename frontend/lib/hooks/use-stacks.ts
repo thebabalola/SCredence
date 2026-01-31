@@ -277,7 +277,7 @@ export function useStacks(): UseStacksResult {
     isConnected: state.status === "connected",
     isPending: state.status === "pending",
     isReady: isBrowser && hasHydrated.current,
-    stxAddress: state.addresses.testnet ?? state.addresses.mainnet,
+    stxAddress: state.addresses.mainnet,
     btcAddress: state.addresses.btc,
   };
 }
