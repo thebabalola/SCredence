@@ -41,6 +41,4 @@ const DropdownMenuItem = React.forwardRef<
 ));
 DropdownMenuItem.displayName = DropdownMenuPrimitive.Item.displayName;
 
-const DialogClose = DropdownMenuPrimitive.Close;
-
 export { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem };
