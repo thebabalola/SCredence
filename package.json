@@ -1,13 +1,11 @@
 {
-  "name": "my-project",
+  "name": "scredence",
   "version": "0.1.0",
   "private": true,
+  "description": "SCredence - Bitcoin-anchored professional credential verification system",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint ."
-  },
-  "dependencies": {},
-  "devDependencies": {}
+    "dev": "cd frontend && pnpm dev",
+    "build": "cd frontend && pnpm build",
+    "start": "cd frontend && pnpm start"
+  }
 }

@@ -1,11 +1,5 @@
 {
-  "buildCommand": "cd frontend && pnpm install && pnpm run build",
+  "buildCommand": "pnpm install --recursive && pnpm -C frontend run build",
   "outputDirectory": "frontend/.next",
-  "framework": "nextjs",
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/frontend/$1"
-    }
-  ]
+  "framework": "nextjs"
 }
