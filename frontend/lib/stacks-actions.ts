@@ -5,7 +5,7 @@ import {
   Cl,
   type PostCondition
 } from '@stacks/transactions';
-import { STACKS_NETWORK_CONFIG, SC_CONTRACTS } from '../constants/contracts';
+import { STACKS_NETWORK_CONFIG, SC_CONTRACTS } from './constants/contracts';
 
 /**
  * Standard options for Stacks contract calls

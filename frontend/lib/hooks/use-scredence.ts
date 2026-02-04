@@ -4,7 +4,6 @@ import { useState, useCallback } from 'react';
 import { 
   Cl, 
   fetchCallReadOnlyFunction,
-  parseContext,
   cvToJSON
 } from '@stacks/transactions';
 import { STACKS_NETWORK_CONFIG, SC_CONTRACTS } from '../constants/contracts';
