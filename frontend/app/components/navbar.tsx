@@ -29,15 +29,15 @@ export function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/80 backdrop-blur-md">
+    <nav className="sticky top-0 z-50 w-full border-b border-white/10 bg-[#0B0E14]/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 h-16">
         {/* Logo - Left */}
-        <Link href="/" className="text-xl font-bold tracking-tight text-primary shrink-0">
+        <Link href="/" className="text-xl font-bold tracking-tight text-[#FF4444] shrink-0">
           SCredence
         </Link>
 
         {/* Navigation - Center */}
-        <div className="hidden md:flex items-center gap-1 bg-secondary/50 p-1 rounded-full border border-border/50">
+        <div className="hidden md:flex items-center gap-6">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -45,10 +45,10 @@ export function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                className={`flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-all ${
                   isActive 
-                    ? "bg-background text-primary shadow-sm ring-1 ring-border/50" 
-                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                    ? "text-[#FF4444] border-b-2 border-[#FF4444]" 
+                    : "text-gray-400 hover:text-white"
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -64,14 +64,14 @@ export function Navbar() {
           {isConnected ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary hover:bg-secondary/80 transition-colors border border-border shadow-sm group">
-                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
-                    <User className="w-3.5 h-3.5 text-primary" />
+                <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1a1f2e] hover:bg-[#232b3d] transition-colors border border-white/10 shadow-sm group">
+                  <div className="w-6 h-6 rounded-full bg-[#FF4444]/20 flex items-center justify-center">
+                    <User className="w-3.5 h-3.5 text-[#FF4444]" />
                   </div>
-                  <span className="font-mono text-xs text-foreground text-nowrap">
+                  <span className="font-mono text-xs text-white text-nowrap">
                     {formatAddress(stxAddress)}
                   </span>
-                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground group-data-[state=open]:rotate-180 transition-transform" />
+                  <ChevronDown className="w-3.5 h-3.5 text-gray-400 group-data-[state=open]:rotate-180 transition-transform" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
@@ -94,7 +94,7 @@ export function Navbar() {
             <button
               type="button"
               onClick={connect}
-              className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition hover:bg-primary/90 shadow-lg shadow-primary/20 active:scale-95"
+              className="rounded-lg bg-[#FF4444] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#FF5555] shadow-lg shadow-[#FF4444]/20 active:scale-95"
             >
               Connect Wallet
             </button>
