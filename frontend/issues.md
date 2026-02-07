@@ -11,10 +11,10 @@ This document tracks the UI/UX and contract integration tasks for the SCredence 
 **Labels:** `frontend`, `web3`, `integration`  
 **Description:** Replace mock data with real blockchain interactions using `@stacks/connect`.
 - **Tasks:**
-  - [ ] Implement `useSCredence` hook for reading contract state.
-  - [ ] Implement `useSCredenceActions` hook for executing transactions.
-  - [ ] Connect Issuer Dashboard to `register-issuer` and `issuers` map.
-  - [ ] Connect Verification page to `verify-proof` read-only function.
+  - [x] Implement `useSCredence` hook for reading contract state.
+  - [x] Implement `useSCredenceActions` hook for executing transactions.
+  - [x] Connect Issuer Dashboard to `register-issuer` and `issuers` map.
+  - [x] Connect Verification page to `verify-proof` read-only function.
   - [ ] Connect My Proofs page to user-specific proof data.
 
 ### Issue #12: Mobile Responsiveness & UX Polish
