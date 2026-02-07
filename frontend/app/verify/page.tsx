@@ -1,48 +1,51 @@
 "use client";
 
 import { useState } from "react";
-import { Search, ShieldCheck, XCircle, AlertTriangle, CheckCircle } from "lucide-react";
+import { Search, XCircle, AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
+import { useSCredence } from "@/lib/hooks/use-scredence";
 
 export default function VerifyPage() {
   const [proofId, setProofId] = useState("");
   const [hash, setHash] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   const [result, setResult] = useState<any>(null);
+  
+  const { verifyProof } = useSCredence();
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsVerifying(true);
     setResult(null);
 
-    // Simulate contract call delay
-    setTimeout(() => {
-      // Mock data for demonstration
-      if (proofId === "1") {
+    try {
+      const data = await verifyProof(parseInt(proofId), hash);
+      
+      if (data && data.value && data.value.value) {
+        // Success: Found proof
+        const val = data.value.value;
         setResult({
-          isValid: true,
-          isRevoked: false,
-          isExpired: false,
-          participant: "SP1Y06...BWRQQJ9",
-          issuer: "Andela Nigeria",
-          serviceType: "Internship",
-          issuedAt: "Jan 15, 2024",
-        });
-      } else if (proofId === "2") {
-        setResult({
-          isValid: false,
-          isRevoked: true,
-          isExpired: false,
-          reason: "Information mismatch",
-          participant: "SP3FD...GY3WJQTM",
-          issuer: "Cisco Networking",
+          isValid: val["is-valid"].value,
+          isRevoked: val["is-revoked"].value,
+          isExpired: val["is-expired"].value,
+          participant: val.participant.value,
+          issuer: val.issuer.value,
+          serviceType: val["service-type"].value.toString(),
+          issuedAt: new Date(Number(val["issued-at"].value) * 1000).toLocaleDateString(),
         });
       } else {
+        // Null result or error
         setResult({
-          error: "Proof not found on-chain.",
+          error: "Proof not found on-chain or invalid format.",
         });
       }
+    } catch (error) {
+      console.error(error);
+      setResult({
+        error: "Verification failed. Please check your connection.",
+      });
+    } finally {
       setIsVerifying(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -66,7 +69,7 @@ export default function VerifyPage() {
                 </label>
                 <input
                   id="proofId"
-                  type="text"
+                  type="number"
                   placeholder="e.g. 1"
                   className="rounded-lg border border-border bg-background px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary/20 transition text-foreground placeholder:text-muted-foreground"
                   value={proofId}
@@ -96,7 +99,7 @@ export default function VerifyPage() {
             >
               {isVerifying ? (
                 <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Verifying...
                 </>
               ) : (
@@ -130,7 +133,7 @@ export default function VerifyPage() {
                       {result.isValid ? 'Valid Credential' : 'Invalid / Revoked'}
                     </h3>
                     <p className={`text-sm ${result.isValid ? 'text-emerald-600/80 dark:text-emerald-500/80' : 'text-amber-600/80 dark:text-amber-500/80'}`}>
-                      Verified on Stacks Block #782,104
+                      Verified on Stacks Mainnet
                     </p>
                   </div>
                 </div>
@@ -138,11 +141,11 @@ export default function VerifyPage() {
                 <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-2 text-sm">
                   <div>
                     <p className="font-semibold text-muted-foreground uppercase tracking-wide text-xs">Participant</p>
-                    <p className="mt-1 font-medium text-foreground">{result.participant}</p>
+                    <p className="mt-1 font-medium text-foreground truncate">{result.participant}</p>
                   </div>
                   <div>
                     <p className="font-semibold text-muted-foreground uppercase tracking-wide text-xs">Issuer</p>
-                    <p className="mt-1 font-medium text-foreground">{result.issuer}</p>
+                    <p className="mt-1 font-medium text-foreground truncate">{result.issuer}</p>
                   </div>
                   {result.serviceType && (
                     <div>
@@ -158,8 +161,8 @@ export default function VerifyPage() {
                   )}
                   {result.isRevoked && (
                     <div className="col-span-full mt-2 pt-4 border-t border-amber-500/20">
-                      <p className="font-semibold text-amber-700 dark:text-amber-400">Revocation Reason</p>
-                      <p className="mt-1 text-amber-600 dark:text-amber-300">{result.reason}</p>
+                      <p className="font-semibold text-amber-700 dark:text-amber-400">Revocation Status</p>
+                      <p className="mt-1 text-amber-600 dark:text-amber-300">This credential has been explicitly revoked by the issuer.</p>
                     </div>
                   )}
                 </div>
