@@ -1,10 +1,28 @@
 "use client";
 
 import { useStacks } from "@/lib/hooks/use-stacks";
-import { Plus, ShieldCheck, Users, ExternalLink } from "lucide-react";
+import { useSCredence } from "@/lib/hooks/use-scredence";
+import { ShieldCheck, Users, ExternalLink, Loader2, Info } from "lucide-react";
+import { RegisterIssuerModal } from "../components/register-issuer-modal";
+import { useEffect, useState } from "react";
 
 export default function IssuersPage() {
-  const { isConnected } = useStacks();
+  const { isConnected, stxAddress } = useStacks();
+  const { getIssuerInfo } = useSCredence();
+  const [myIssuerData, setMyIssuerData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (isConnected && stxAddress) {
+      setIsLoading(true);
+      getIssuerInfo(stxAddress).then(data => {
+        if (data && data.value) {
+          setMyIssuerData(data.value.value);
+        }
+        setIsLoading(false);
+      });
+    }
+  }, [isConnected, stxAddress, getIssuerInfo]);
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-12">
@@ -18,17 +36,42 @@ export default function IssuersPage() {
               Manage authorized organizations and issue service proofs.
             </p>
           </div>
-          {isConnected && (
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:bg-primary/90"
-            >
-              <Plus className="h-4 w-4" />
-              Register New Issuer
-            </button>
-          )}
+          {isConnected && <RegisterIssuerModal />}
         </header>
 
+        {/* My Organization Section (Real Data) */}
+        {isConnected && (
+          <section className="rounded-xl border border-primary/20 bg-primary/5 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <Info className="w-5 h-5 text-primary" />
+              <h2 className="font-semibold text-primary">My Organization Status</h2>
+            </div>
+            
+            {isLoading ? (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Checking registry...</span>
+              </div>
+            ) : myIssuerData ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-background rounded-lg border border-border">
+                  <p className="text-xs font-medium text-muted-foreground uppercase">Organization Name</p>
+                  <p className="text-lg font-bold text-foreground mt-1">{myIssuerData.name.value}</p>
+                </div>
+                <div className="p-4 bg-background rounded-lg border border-border">
+                  <p className="text-xs font-medium text-muted-foreground uppercase">Category</p>
+                  <p className="text-lg font-bold text-foreground mt-1">{myIssuerData.category.value}</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-muted-foreground text-sm">
+                Your wallet <strong>{stxAddress?.slice(0, 6)}...{stxAddress?.slice(-4)}</strong> is not registered as an issuer.
+              </p>
+            )}
+          </section>
+        )}
+
+        {/* Stats Grid (Mock) */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
             <div className="flex items-center gap-4">
@@ -65,9 +108,10 @@ export default function IssuersPage() {
           </div>
         </div>
 
+        {/* Global Registry (Mock) */}
         <section className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
           <div className="border-b border-border bg-muted/50 px-6 py-4">
-            <h2 className="font-semibold text-foreground">Registered Issuers</h2>
+            <h2 className="font-semibold text-foreground">Registered Issuers (Network)</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-muted-foreground">
@@ -105,12 +149,6 @@ export default function IssuersPage() {
               </tbody>
             </table>
           </div>
-          {!isConnected && (
-            <div className="flex flex-col items-center justify-center py-12 px-6 text-center bg-muted/30">
-              <p className="text-foreground font-medium">Connect your wallet to manage issuers</p>
-              <p className="text-sm text-muted-foreground mt-1">Authorized admins can register new organizations.</p>
-            </div>
-          )}
         </section>
       </div>
     </main>
